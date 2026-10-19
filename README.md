@@ -4,6 +4,8 @@
 
 ## Mở ứng dụng
 
+Hướng dẫn theo hệ điều hành: [chạy app và chép dữ liệu](docs/RUNNING.md). Dành cho người build: [chuẩn bị, đóng gói và kiểm tra từng OS](docs/PACKAGING.md).
+
 Trên máy macOS Apple Silicon hiện tại, mở `dist/Cloud Study.app`, hoặc chạy `./run.command`. Thư viện nằm tại `files/`. Nếu chưa tìm thấy dữ liệu, bấm ⚙ ở góc trái và chọn thư mục `files`.
 
 `dist/` chỉ giữ bản macOS ARM64 hiện tại (khoảng 5 MB), gồm host và backend. Các bản build cũ và archive trùng đã được dọn. Windows/Linux tiếp tục có cấu hình build native trong CI; thay đổi lần này chưa chạy GUI trên hai hệ điều hành đó.
