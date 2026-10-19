@@ -41,3 +41,8 @@ required-features = ["desktop"]
 [[bin]]
 name = "cloud-study-core"
 path = "src/bin/core.rs"
+
+# macOS: serialize WebKit task validation and response delivery on the main queue.
+# https://github.com/tauri-apps/wry/pull/1856 (pinned until a fixed release ships)
+[patch.crates-io]
+wry = { git = "https://github.com/tauri-apps/wry", rev = "a1e9973c44f1e6ccb6a1f17a16ded28be26d3ff1" }

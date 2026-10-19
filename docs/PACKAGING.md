@@ -110,3 +110,7 @@ node scripts/quality/check-footprint.mjs
 `dist/`, `files/`, SQLite, SDK/cache, target và node_modules đều gitignore. Không commit khóa học hoặc artifact. Muốn phát triển lại sau cleanup, chạy lại bước chuẩn bị. Build tạm thời có thể vượt 7 GB; mốc repo mang sang máy khác dưới 7 GB được kiểm sau cleanup.
 
 Hiện chỉ gói macOS ARM64 đã được build/chạy GUI ở phiên bản mới. Những lệnh Windows/Linux trên đây là quy trình dựa trên cấu hình nguồn và tài liệu Tauri; chưa phải bằng chứng đã phát hành hoặc kiểm runtime trên hai OS đó.
+
+## Dependency fix cho macOS
+
+Cargo.toml tạm pin Wry vào revision của [PR #1856](https://github.com/tauri-apps/wry/pull/1856) để xử lý race phản hồi WebKit. Cargo.lock khóa chính xác commit; lần bootstrap/build đầu cần mạng để tải Git dependency này. Dùng `--locked`; không bỏ patch riêng trên một hệ điều hành rồi phát hành bản không khớp lockfile. Khi release Wry chính thức chứa fix, cập nhật dependency và kiểm lại phát lại/chuyển bài/đóng cửa sổ trên macOS.

@@ -89,4 +89,8 @@ Chữ giao diện tăng 1 px; tiêu đề lớn từ 34 px trở lên tăng 2 px
 - Backend macOS ARM64: peak sampled RSS 17.629.184 byte khi mở 277 bài, tìm kiếm song ngữ và đọc mọi phụ đề; dưới giới hạn 20.000.000 byte. Đây là số đo workload cục bộ, không phải bảo đảm mọi máy.
 - Lần thay đổi này build/kiểm runtime macOS ARM64. Windows/Linux cần build và kiểm runtime trên hệ điều hành tương ứng theo PACKAGING.md.
 
-Bản macOS `.app` mới gồm GUI và core: 5.045.680 byte (<20 MB); giữ trong `dist/Cloud Study.app`, không đưa vào Git.
+Bản macOS `.app` mới gồm GUI và core: 5.045.696 byte (<20 MB); giữ trong `dist/Cloud Study.app`, không đưa vào Git.
+
+Trong QA cuối đã gặp SIGABRT trên `tokio-rt-worker` (`panic_cannot_unwind`) khi kiểm phát lại/bàn phím. Dấu hiệu khớp race phản hồi custom-protocol của Wry trên macOS khi WKURLSchemeTask bị hủy. Đã đọc bản sửa upstream [Wry #1856](https://github.com/tauri-apps/wry/pull/1856), pin revision `a1e9973c44f1e6ccb6a1f17a16ded28be26d3ff1` trong Cargo.toml/Cargo.lock: đưa kiểm tra task và cả phản hồi về main queue. PR còn mở; bỏ patch khi có release chính thức đã chứa fix. Không sửa file registry cục bộ, không vendor runtime vào repo. Giữ nguyên các dependency Windows đã khóa.
+
+Sau patch, Clippy `--all-targets --locked` và 4 Rust tests qua; native đã đổi bài nhanh 9 lượt, phát lại và tua tới hết không abort. Đây là kiểm tra cục bộ, không phải chứng minh hết mọi race có thể có. Bộ kiểm tra native cũng xác minh sau restart, autoplay=false vẫn giữ bài 2 trên màn hình kết thúc.
