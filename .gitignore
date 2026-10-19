@@ -1,0 +1,15 @@
+/files/
+/target/
+/node_modules/
+/tools/
+/.codegraph/
+/dist/
+/binaries/
+/gen/
+*.sqlite
+*.sqlite-*
+*.db
+.DS_Store
+*.log
+__pycache__/
+*.pyc

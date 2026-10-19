@@ -1,0 +1,9 @@
+{
+  "platform": "macOS arm64",
+  "backend_peak_sampled_rss_bytes": 17350656,
+  "backend_limit_bytes": 20000000,
+  "samples": 43,
+  "lessons": 277,
+  "passed": true,
+  "measurement": "RSS sampled every 20 ms during import, bilingual searches and reading every subtitle; excludes WebView host"
+}

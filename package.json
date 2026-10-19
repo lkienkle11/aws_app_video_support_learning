@@ -1,0 +1,20 @@
+{
+  "name": "cloud-study-desktop",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "tauri dev",
+    "build": "tauri build",
+    "build:binary": "tauri build --no-bundle",
+    "test": "node --test tests/*.test.mjs",
+    "lint:commit": "commitlint --edit",
+    "prepare": "node scripts/install-hooks.mjs"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^20.0.0",
+    "@commitlint/config-conventional": "^20.0.0",
+    "@tauri-apps/cli": "^2.0.0",
+    "prettier": "^3.9.10"
+  }
+}

@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Cloud Study</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <aside class="sidebar">
+      <a class="brand" href="#"
+        ><span class="brand-icon">☁</span
+        ><span
+          >cloud<span class="light">study</span><small>YOUR OFFLINE LEARNING SPACE</small></span
+        ></a
+      >
+      <div class="workspace-label">WORKSPACE <span>LOCAL</span></div>
+      <button class="nav active" id="home">
+        ▦ <span>Thư viện khóa học</span><span class="nav-count" id="nav-count">0</span>
+      </button>
+      <button class="nav" id="continue-nav">◷ <span>Đang học</span></button>
+      <button class="nav" id="completed-nav">✓ <span>Đã hoàn thành</span></button>
+      <div class="workspace-label section-label">NỘI DUNG KHÓA HỌC</div>
+      <nav id="chapters" aria-label="Chương khóa học"></nav>
+      <div class="sidebar-bottom">
+        <span class="status-dot"></span> Dữ liệu trên máy của bạn
+        <button id="choose-library" title="Chọn thư mục files">⚙</button
+        ><small id="library-path">Chọn thư mục files để bắt đầu</small>
+      </div>
+    </aside>
+    <main>
+      <header class="topbar">
+        <div class="breadcrumbs">
+          Không gian học tập <span>/</span> <b>AWS Cloud Practitioner</b>
+        </div>
+        <div class="top-actions">
+          <span class="offline"><i></i> Offline ready</span
+          ><button id="rescan" class="icon-button" title="Quét lại thư viện">↻</button
+          ><span class="avatar">K</span>
+        </div>
+      </header>
+      <div class="content">
+        <section id="library-view">
+          <div class="page-heading">
+            <div>
+              <div class="eyebrow">LEARN AT YOUR OWN PACE</div>
+              <h1>Mỗi ngày, một bước tiến.</h1>
+              <p>Khám phá AWS. Xây nền tảng vững chắc cho hành trình cloud của bạn.</p>
+            </div>
+            <span class="course-badge"
+              >AWS CERTIFIED <b>Cloud Practitioner</b><small>CLF-C02 · 2026</small></span
+            >
+          </div>
+          <section class="hero">
+            <div class="hero-copy">
+              <div class="pill">LỘ TRÌNH CỦA BẠN <span>↗</span></div>
+              <h2>Small steps.<br /><em>Big possibilities.</em></h2>
+              <p>
+                Toàn bộ khóa học, ngay trên máy bạn.<br />Video, phụ đề và ghi chú — trong một không
+                gian.
+              </p>
+              <button id="resume" class="primary">▶ <span>Bắt đầu học</span></button>
+              <div class="hero-meta" id="hero-meta">Đang đọc thư viện…</div>
+            </div>
+            <div class="cloud-art" aria-hidden="true">
+              <div class="orbit orbit-one"></div>
+              <div class="orbit orbit-two"></div>
+              <span class="art-node node-one">⌘</span><span class="art-node node-two">▤</span
+              ><span class="art-node node-three">⌁</span>
+              <div class="cloud-core">☁<small>aws</small></div>
+              <span class="art-caption">BUILD YOUR CLOUD FOUNDATION</span>
+            </div>
+          </section>
+          <section class="stats">
+            <div>
+              <span class="stat-icon">▤</span>
+              <div><b id="stat-lessons">0</b><small>Bài học trong thư viện</small></div>
+            </div>
+            <div>
+              <span class="stat-icon">◷</span>
+              <div><b id="stat-hours">—</b><small>Tổng thời lượng</small></div>
+            </div>
+            <div>
+              <span class="stat-icon">✓</span>
+              <div><b id="stat-completed">0</b><small>Bài học hoàn thành</small></div>
+            </div>
+            <div class="progress-stat">
+              <div><b id="stat-progress">0%</b><small>Tiến độ của bạn</small></div>
+              <div class="progress-ring" id="progress-ring">↗</div>
+            </div>
+          </section>
+          <div class="section-heading">
+            <div>
+              <h2>Thư viện bài học <span id="result-count">0</span></h2>
+              <p>Chọn một bài học. Bắt đầu một điều mới.</p>
+            </div>
+            <button id="all-lessons" class="text-button">Tất cả bài học ↗</button>
+          </div>
+          <div class="filters">
+            <label class="search-box"
+              ><span>⌕</span
+              ><input
+                id="search"
+                type="search"
+                placeholder="Tìm tên bài học, mô tả…"
+                aria-label="Tìm bài học"
+              /><kbd>⌘ K</kbd></label
+            ><select id="search-language" aria-label="Ngôn ngữ tìm kiếm">
+              <option value="">Mọi ngôn ngữ</option>
+              <option value="vi">Tiếng Việt</option>
+              <option value="en">English</option></select
+            ><select id="chapter-filter" aria-label="Lọc chương">
+              <option value="">Tất cả chương</option></select
+            ><select id="display-language" aria-label="Ngôn ngữ tiêu đề">
+              <option value="vi">Tiêu đề: Tiếng Việt</option>
+              <option value="en">Title: English</option>
+            </select>
+          </div>
+          <div id="lesson-grid" class="lesson-grid"></div>
+          <div id="empty" class="empty" hidden>
+            Chưa có bài học. Chọn thư mục files hoặc thử từ khóa khác.
+          </div>
+          <button id="load-more" class="secondary load-more" hidden>Xem thêm bài học</button>
+        </section>
+        <section id="watch-view" hidden>
+          <button id="back" class="text-button">← Quay lại thư viện</button>
+          <div class="watch-layout">
+            <div class="watch-main">
+              <div id="player" class="player" tabindex="0" aria-label="Trình phát video">
+                <video id="video" preload="metadata" playsinline></video>
+                <div id="video-empty" class="video-empty">Chọn bài học để phát</div>
+                <button id="center-play" class="center-play" title="Phát / Tạm dừng">▶</button>
+                <div id="seek-feedback" class="seek-feedback" hidden></div>
+                <div class="player-controls" id="player-controls">
+                  <div class="seek-row">
+                    <input
+                      id="seek"
+                      type="range"
+                      min="0"
+                      max="1000"
+                      value="0"
+                      aria-label="Tua video"
+                    />
+                    <div id="seek-preview" class="seek-preview" hidden>
+                      <div id="preview-frame"></div>
+                      <span id="preview-time"></span>
+                    </div>
+                  </div>
+                  <div class="control-row">
+                    <button id="play" title="Phát / Tạm dừng (Space)">▶</button
+                    ><button id="previous" title="Bài trước (Shift P)">❮</button
+                    ><button id="next" title="Bài tiếp (Shift N)">❯</button
+                    ><button id="mute" title="Tắt / Mở tiếng (M)">♫</button
+                    ><input
+                      id="volume"
+                      type="range"
+                      min="0"
+                      max="1"
+                      step="0.01"
+                      value="1"
+                      aria-label="Âm lượng"
+                    /><span id="time">0:00 / 0:00</span>
+                    <div class="control-spacer"></div>
+                    <button id="captions-toggle" title="Bật / Tắt phụ đề (C)">CC</button
+                    ><button id="settings-toggle" title="Cài đặt">⚙</button
+                    ><button id="pip" title="Hình trong hình">▣</button
+                    ><button id="theater" title="Chế độ rạp (T)">▭</button
+                    ><button id="fullscreen" title="Toàn màn hình (F)">⛶</button>
+                  </div>
+                </div>
+                <div id="settings" class="player-settings" hidden>
+                  <label
+                    >Tốc độ
+                    <select id="speed">
+                      <option>0.5</option>
+                      <option>0.75</option>
+                      <option value="1" selected>1</option>
+                      <option>1.25</option>
+                      <option>1.5</option>
+                      <option>1.75</option>
+                      <option>2</option>
+                    </select></label
+                  ><label
+                    >Phụ đề
+                    <select id="subtitle-language">
+                      <option value="">Tắt</option>
+                    </select></label
+                  ><label
+                    >Cỡ phụ đề
+                    <select id="caption-size">
+                      <option value="18">Nhỏ</option>
+                      <option value="24" selected>Vừa</option>
+                      <option value="32">Lớn</option>
+                      <option value="40">Rất lớn</option>
+                    </select></label
+                  ><label
+                    >Nền phụ đề
+                    <select id="caption-background">
+                      <option value="rgba(0,0,0,.8)">Tối</option>
+                      <option value="transparent">Trong suốt</option>
+                    </select></label
+                  ><label
+                    >Màu phụ đề
+                    <select id="caption-color">
+                      <option value="white">Trắng</option>
+                      <option value="#ffe56a">Vàng</option>
+                    </select></label
+                  ><label
+                    >Lệch phụ đề (giây)<input
+                      id="caption-offset"
+                      type="number"
+                      min="-120"
+                      max="120"
+                      step="0.5"
+                      value="0" /></label
+                  ><label>Tự phát bài tiếp <input id="autoplay" type="checkbox" checked /></label
+                  ><label>Lặp lại video <input id="loop" type="checkbox" /></label
+                  ><small>Chất lượng: bản gốc trên máy</small>
+                </div>
+              </div>
+              <div class="lesson-heading">
+                <div>
+                  <span id="watch-chapter" class="eyebrow"></span>
+                  <h1 id="watch-title"></h1>
+                  <p id="watch-subtitle"></p>
+                </div>
+                <button id="mark-complete" class="secondary">✓ Hoàn thành</button>
+              </div>
+              <div class="tabs">
+                <button class="active" data-tab="description">Tổng quan</button
+                ><button data-tab="transcript">Bản chép lời</button
+                ><button data-tab="notes">Ghi chú của tôi</button>
+              </div>
+              <div id="description-tab" class="tab-content">
+                <p id="watch-description"></p>
+                <div class="learning-tip">
+                  <b>✦ Học chủ động</b>
+                  <p>
+                    Sau bài học, hãy thử giải thích khái niệm bằng lời của bạn và ghi lại một tình
+                    huống áp dụng.
+                  </p>
+                </div>
+                <div class="lesson-actions">
+                  <button id="edit-metadata" class="secondary">✎ Sửa tiêu đề & mô tả</button
+                  ><button id="import-subtitle" class="secondary">＋ Thêm phụ đề</button
+                  ><input
+                    id="import-language"
+                    value="vi"
+                    maxlength="20"
+                    aria-label="Mã ngôn ngữ phụ đề"
+                    title="Mã ngôn ngữ: vi, en, ja, zh…"
+                  />
+                </div>
+                <small id="track-info"></small>
+              </div>
+              <div id="transcript-tab" class="tab-content" hidden>
+                <input
+                  id="transcript-search"
+                  type="search"
+                  placeholder="Tìm trong bản chép lời…"
+                  aria-label="Tìm trong phụ đề"
+                />
+                <div id="transcript"></div>
+              </div>
+              <div id="notes-tab" class="tab-content" hidden>
+                <label for="notes"
+                  >Ghi lại điều bạn vừa học. Dữ liệu được lưu trong SQLite của thư viện.</label
+                ><textarea
+                  id="notes"
+                  rows="9"
+                  placeholder="Ví dụ: IAM role khác IAM user ở điểm nào?"
+                ></textarea
+                ><button id="save-notes" class="primary">Lưu ghi chú</button
+                ><small id="notes-status"></small>
+              </div>
+            </div>
+            <aside class="playlist">
+              <div class="playlist-heading">
+                <b>Nội dung khóa học</b><small id="playlist-count"></small>
+              </div>
+              <div id="playlist"></div>
+            </aside>
+          </div>
+        </section>
+        <footer>
+          <span>☁ cloudstudy <span class="footer-dot">·</span> Made for focused learning</span
+          ><span>LOCAL FIRST. ALWAYS YOURS.</span>
+        </footer>
+      </div>
+    </main>
+    <dialog id="metadata-dialog">
+      <form id="metadata-form">
+        <h2>Tiêu đề & mô tả</h2>
+        <p>Lưu cạnh video trong file .lesson.json, đồng bộ vào SQLite.</p>
+        <label>Ngôn ngữ <input id="edit-language" value="vi" required pattern="[A-Za-z-]+" /></label
+        ><label>Tiêu đề <input id="edit-title" required /></label
+        ><label>Mô tả <textarea id="edit-description" rows="8" required></textarea></label>
+        <div>
+          <button type="button" id="cancel-edit" class="secondary">Hủy</button
+          ><button type="submit" class="primary">Lưu thay đổi</button>
+        </div>
+      </form>
+    </dialog>
+    <div id="toast" role="status" hidden></div>
+    <script type="module" src="app.js"></script>
+  </body>
+</html>
