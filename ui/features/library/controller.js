@@ -21,12 +21,27 @@ function notify(message) {
 }
 const player = new Player({
   notify,
+  getNextTitle: () => {
+    const index = state.all.findIndex((l) => l.id === state.selected?.id);
+    const next = state.all[index + 1];
+    return next ? localized(next, state.language).title : null;
+  },
   onProgress: (lesson) => {
     const index = state.all.findIndex((l) => l.id === lesson.id);
     if (index >= 0) state.all[index] = lesson;
     const result = state.results.findIndex((l) => l.id === lesson.id);
     if (result >= 0) state.results[result] = lesson;
     updateStats();
+    $('playlist-count').textContent =
+      `${state.all.length} bài · ${state.all.filter((l) => l.completed).length} hoàn thành`;
+    for (const button of $('playlist').querySelectorAll('button')) {
+      if (button.dataset.id === lesson.id)
+        button.querySelector('span').textContent = lesson.completed
+          ? '✓'
+          : String(lesson.number).padStart(3, '0');
+    }
+    if (state.selected?.id === lesson.id)
+      $('mark-complete').textContent = lesson.completed ? '✓ Đã hoàn thành' : '✓ Hoàn thành';
   },
   onNavigate: (delta) => {
     const index = state.all.findIndex((l) => l.id === state.selected?.id);
@@ -120,9 +135,11 @@ function render() {
     .slice(0, state.limit)
     .map((lesson, i) => {
       const text = localized(lesson, state.language);
-      const percent = lesson.duration
-        ? Math.min(100, (lesson.position / lesson.duration) * 100)
-        : 0;
+      const percent = lesson.completed
+        ? 100
+        : lesson.duration
+          ? Math.min(100, (lesson.position / lesson.duration) * 100)
+          : 0;
       return `<article class="lesson-card" tabindex="0" role="button" data-id="${h(lesson.id)}" aria-label="Xem trước ${h(text.title)}"><div class="card-art ${['', 'blue', 'sand'][i % 3]}"><span class="card-symbol">${['☁', '⌘', '▤', '⌁', '⛨'][i % 5]}</span><span class="card-badge">BÀI ${String(lesson.number).padStart(3, '0')}</span><span class="card-play">▶</span><span class="duration">${lesson.duration ? time(lesson.duration) : 'VIDEO'}</span></div><div class="card-body"><span class="card-chapter">${h(lesson.chapter || 'AWS Cloud Practitioner')}</span><h3>${h(text.title)}</h3><p>${h(text.description)}</p><div class="card-footer"><span>▤ ${lesson.tracks.length ? lesson.tracks.map((t) => h(t.language.toUpperCase())).join(' · ') : 'Chưa có phụ đề'}</span><span>${lesson.completed ? '✓ Đã học' : lesson.position ? '◷ Đang học' : 'Bắt đầu khám phá ↗'}</span></div></div><div class="card-progress"><span style="width:${percent}%"></span></div></article>`;
     })
     .join('');
@@ -193,19 +210,18 @@ async function watch(lesson, play = true) {
   }
 }
 async function home() {
-  await player.save();
-  player.video.pause();
+  await player.leave();
   $('watch-view').hidden = true;
   $('library-view').hidden = false;
   updateStats();
   render();
 }
 async function chooseLibrary() {
+  player.endScreen.hide();
   try {
     const path = await chooseDirectory();
     if (!path) return;
-    await player.save();
-    player.video.pause();
+    await player.leave();
     const info = await invoke('open_library', { path });
     state.root = info.root;
     $('library-path').textContent = info.root;
@@ -221,6 +237,7 @@ async function chooseLibrary() {
 }
 $('choose-library').onclick = chooseLibrary;
 $('rescan').onclick = async () => {
+  player.endScreen.hide();
   try {
     await player.save();
     if (!state.root) return chooseLibrary();
@@ -304,13 +321,7 @@ async function persistNotes() {
   if (!lesson) return;
   lesson.notes = $('notes').value;
   try {
-    await invoke('save_progress', {
-      id: lesson.id,
-      position: lesson.position,
-      duration: lesson.duration,
-      completed: lesson.completed,
-      notes: lesson.notes,
-    });
+    await player.saveNotes(lesson, lesson.notes);
     $('notes-status').textContent = 'Đã lưu trên máy.';
     updateStats();
   } catch (e) {
@@ -385,6 +396,19 @@ $('import-subtitle').onclick = async () => {
     notify(e);
   }
 };
+const appWindow = window.__TAURI__?.window?.getCurrentWindow();
+if (appWindow) {
+  appWindow
+    .onCloseRequested(async (event) => {
+      try {
+        await player.leave();
+      } catch {
+        event.preventDefault();
+      }
+    })
+    .catch(notify);
+}
+
 try {
   const info = await invoke('default_library');
   state.root = info.root;

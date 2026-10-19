@@ -140,6 +140,17 @@
                 ></div>
                 <div id="video-empty" class="video-empty">Chọn bài học để phát</div>
                 <button id="center-play" class="center-play" title="Phát / Tạm dừng">▶</button>
+                <section id="end-screen" class="end-screen" hidden aria-label="Kết thúc bài học">
+                  <div class="end-card">
+                    <strong id="end-status" role="status" aria-live="polite"></strong>
+                    <p id="end-title"></p>
+                    <div class="end-actions">
+                      <button id="end-next" type="button">Chuyển ngay</button>
+                      <button id="end-cancel" type="button">Hủy</button>
+                      <button id="end-replay" type="button">↻ Phát lại</button>
+                    </div>
+                  </div>
+                </section>
                 <div id="seek-feedback" class="seek-feedback" hidden></div>
                 <div class="player-controls" id="player-controls">
                   <div class="seek-row">

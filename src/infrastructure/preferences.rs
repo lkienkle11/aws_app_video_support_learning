@@ -1,4 +1,4 @@
-use crate::domain::{CaptionSettings, Result};
+use crate::domain::{CaptionSettings, PlaybackSettings, Result};
 use rusqlite::{params, Connection, OptionalExtension};
 
 pub fn load_captions(db: &Connection) -> Result<CaptionSettings> {
@@ -29,5 +29,23 @@ pub fn save_captions(db: &Connection, value: &CaptionSettings) -> Result<()> {
     }
     db.execute("INSERT INTO preferences(key,value) VALUES ('captions',?1) ON CONFLICT(key) DO UPDATE SET value=excluded.value",
         params![serde_json::to_string(value).map_err(|e| e.to_string())?]).map_err(|e| e.to_string())?;
+    Ok(())
+}
+
+pub fn load_playback(db: &Connection) -> Result<PlaybackSettings> {
+    let value: Option<String> = db
+        .query_row(
+            "SELECT value FROM preferences WHERE key='playback'",
+            [],
+            |row| row.get(0),
+        )
+        .optional()
+        .map_err(|e| e.to_string())?;
+    value
+        .map(|value| serde_json::from_str(&value).map_err(|e| e.to_string()))
+        .unwrap_or_else(|| Ok(PlaybackSettings::default()))
+}
+pub fn save_playback(db: &Connection, value: &PlaybackSettings) -> Result<()> {
+    db.execute("INSERT INTO preferences(key,value) VALUES ('playback',?1) ON CONFLICT(key) DO UPDATE SET value=excluded.value", params![serde_json::to_string(value).map_err(|e| e.to_string())?]).map_err(|e| e.to_string())?;
     Ok(())
 }

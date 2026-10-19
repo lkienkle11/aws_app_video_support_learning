@@ -76,3 +76,17 @@ Kiểm thử chuyển bài còn tái hiện được sự kiện pause cũ ghi n
 ## Tăng cỡ chữ toàn app
 
 Chữ giao diện tăng 1 px; tiêu đề lớn từ 34 px trở lên tăng 2 px. Các stylesheet desktop/tablet/mobile cùng được điều chỉnh; header tablet cho phép xuống dòng. Giữ nguyên cỡ phụ đề người dùng đã lưu. Đã kiểm tra native macOS ở 320, 650 và 1320 px, gồm thư viện và màn hình bài học ở cửa sổ hẹp. Bản `.app` trong dist đã build lại, 5.045.680 byte. 8 Node tests và 3 Rust tests qua; formatter và git diff check qua.
+
+## Lưu tiến độ và kết thúc video — 2026-10-19
+
+- 14 Node tests và 4 Rust tests qua; fmt, Prettier và Clippy qua. Kiểm thử mới bao gồm thứ tự các lần ghi bất đồng bộ để autosave cũ không ghi đè trạng thái xem hết, lưu ghi chú cùng timestamp thực, và hủy callback đếm ngược đã xếp hàng.
+- SQLite integration: lưu 32,25 giây + ghi chú, tạo Service mới và quét lại thư viện vẫn khôi phục đúng; xem hết lưu position=0/completed=true; bật/tắt tự chuyển được lưu qua lần khởi động mới.
+- Native macOS ARM64, thư viện thử riêng: bài 1 xem đến 6,51 giây → về thư viện → mở bài 2 → quay lại bài 1 hiển thị 0:06. Đóng cửa sổ ở 9,93 giây → khởi động lại → bài 1 hiển thị 0:09.
+- Clip 6 giây tự hoàn thành, lưu position=0/completed=true rồi tự phát bài 3. Mở lại bài hoàn thành hiển thị 0:00. Kiểm thử policy xác nhận bộ đếm đủ 3.000 ms, hiển thị 3/2/1 và chỉ chuyển một lần.
+- Native: thấy đếm ngược “Bài tiếp theo sau 3 giây”, bấm Hủy → giữ nguyên bài, hiện Phát lại; bấm Phát lại → 0:00 và phát; bấm Chuyển ngay → phát bài tiếp ngay. Bài cuối chỉ hiện Phát lại. Công tắc tắt tự chuyển lưu `{"autoplay":false}` và màn hình kết thúc không đếm ngược.
+- Màn hình kết thúc kiểm tra native ở 1320 px và 320 px, chữ/nút nằm trong khung video. Phím Space/Enter trên nút giữ hành vi nút, không bị phím tắt trình phát chặn.
+- Hash logical progress/notes của hai SQLite thật trước/sau kiểm thử không đổi. Video thử nằm trong tools/test-library, không ghi vào thư viện thật.
+- Backend macOS ARM64: peak sampled RSS 17.629.184 byte khi mở 277 bài, tìm kiếm song ngữ và đọc mọi phụ đề; dưới giới hạn 20.000.000 byte. Đây là số đo workload cục bộ, không phải bảo đảm mọi máy.
+- Lần thay đổi này build/kiểm runtime macOS ARM64. Windows/Linux cần build và kiểm runtime trên hệ điều hành tương ứng theo PACKAGING.md.
+
+Bản macOS `.app` mới gồm GUI và core: 5.045.680 byte (<20 MB); giữ trong `dist/Cloud Study.app`, không đưa vào Git.

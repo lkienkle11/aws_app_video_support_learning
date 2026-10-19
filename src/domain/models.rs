@@ -60,3 +60,14 @@ pub struct LibraryInfo {
     pub root: String,
     pub lessons: usize,
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(default)]
+pub struct PlaybackSettings {
+    pub autoplay: bool,
+}
+impl Default for PlaybackSettings {
+    fn default() -> Self {
+        Self { autoplay: true }
+    }
+}

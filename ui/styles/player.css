@@ -449,3 +449,48 @@ dialog form > div {
   font-size: 13px;
   white-space: pre-line;
 }
+
+.end-screen {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  display: grid;
+  place-items: center;
+  padding: clamp(8px, 3vw, 24px);
+  background: #0c1714ed;
+  overflow: auto;
+  color: white;
+}
+.end-screen[hidden] {
+  display: none;
+}
+.end-card {
+  width: min(100%, 420px);
+  max-height: 100%;
+  overflow: auto;
+  text-align: center;
+}
+.end-card strong {
+  font-size: clamp(14px, 2.5vw, 22px);
+}
+.end-card p {
+  font-size: clamp(12px, 2vw, 16px);
+  overflow-wrap: anywhere;
+}
+.end-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+.end-actions button {
+  padding: 9px 14px;
+  font-size: 13px;
+  border-radius: 8px;
+  color: white;
+  background: #345246;
+  border: 1px solid #779587;
+}
+#end-next {
+  background: #40734c;
+}

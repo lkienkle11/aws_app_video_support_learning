@@ -1,14 +1,24 @@
 import { $, time, spritePosition, escapeHTML } from '../../shared/utils.js';
 import { invoke, asset } from '../../shared/api.js';
 import { Captions } from './captions.js';
+import { EndScreen } from './end-screen.js';
+import { resumePosition } from './playback-policy.js';
 import { ControlsVisibility } from './controls-visibility.js';
 
 export class Player {
-  constructor({ notify, onProgress, onNavigate }) {
+  constructor({ notify, onProgress, onNavigate, getNextTitle = () => null }) {
     this.video = $('video');
     this.notify = notify;
     this.onProgress = onProgress;
-    this.onNavigate = onNavigate;
+    this.onNavigate = (delta) => {
+      this.endScreen.hide();
+      onNavigate(delta);
+    };
+    this.getNextTitle = getNextTitle;
+    this.endScreen = new EndScreen({
+      onNext: () => this.onNavigate(1),
+      onReplay: () => this.replay(),
+    });
     this.lesson = null;
     this.urls = [];
     this.generation = 0;
@@ -27,27 +37,35 @@ export class Player {
     v.onclick = () => this.toggle();
     v.ondblclick = () => this.fullscreen();
     v.onplay = () => {
+      if (v.paused || v.ended) return;
+      this.endScreen.hide();
       $('player').classList.add('playing');
       $('play').textContent = 'Ⅱ';
     };
     v.onpause = () => {
+      if (!v.paused) return;
       $('player').classList.remove('playing');
       $('play').textContent = '▶';
-      this.save();
+      this.save().catch(() => {});
     };
     v.onloadedmetadata = () => {
       $('video-empty').hidden = true;
-      if (this.lesson)
-        v.currentTime = Math.min(this.lesson.position, Math.max(0, v.duration - 0.5));
+      if (this.lesson && v.currentSrc === this.source)
+        v.currentTime = resumePosition(this.lesson, v.duration);
       this.update();
     };
     v.ontimeupdate = () => {
       this.update();
-      if (Date.now() - this.lastSave > 5000) this.save();
+      if (Date.now() - this.lastSave > 5000) this.save().catch(() => {});
     };
     v.onended = async () => {
+      const generation = this.generation;
       await this.save(true);
-      if ($('autoplay').checked && !v.loop) this.onNavigate(1);
+      if (generation !== this.generation || !v.ended) return;
+      this.endScreen.show({
+        autoplay: $('autoplay').checked && !v.loop,
+        nextTitle: this.getNextTitle(),
+      });
     };
     v.onerror = () => {
       $('video-empty').hidden = false;
@@ -93,6 +111,15 @@ export class Player {
     };
     $('loop').onchange = (e) => {
       v.loop = e.target.checked;
+      if (v.loop) this.endScreen.cancel();
+    };
+    $('autoplay').onchange = async (e) => {
+      if (!e.target.checked) this.endScreen.cancel();
+      try {
+        await invoke('save_playback_settings', { settings: { autoplay: e.target.checked } });
+      } catch (error) {
+        this.notify('Không lưu được cài đặt: ' + error);
+      }
     };
     $('settings-toggle').onclick = () => {
       $('settings').hidden = !$('settings').hidden;
@@ -134,6 +161,8 @@ export class Player {
     $('fullscreen').onclick = () => this.fullscreen();
     $('player').onkeydown = (e) => {
       if (['INPUT', 'SELECT', 'TEXTAREA'].includes(e.target.tagName)) return;
+      if (e.target.closest?.('#end-screen')) return;
+      if (e.target.tagName === 'BUTTON' && [' ', 'Enter'].includes(e.key)) return;
       const key = e.key.toLowerCase();
       if (
         [
@@ -170,9 +199,12 @@ export class Player {
     };
     $('transcript-search').oninput = () => this.transcript();
     document.addEventListener('visibilitychange', () => {
-      if (document.hidden) this.save();
+      if (document.hidden) this.save().catch(() => {});
     });
-    window.addEventListener('pagehide', () => this.save());
+    window.addEventListener('pagehide', () => {
+      this.endScreen.hide();
+      this.save().catch(() => {});
+    });
   }
   idle() {
     this.visibility.reveal();
@@ -181,7 +213,21 @@ export class Player {
     $('volume').value = this.video.muted ? 0 : this.video.volume;
     $('mute').textContent = this.video.muted ? '⊘' : '♫';
   }
+  replay() {
+    this.endScreen.hide();
+    this.video.currentTime = 0;
+    this.video.play().catch((e) => this.notify(e.message));
+    $('player').focus();
+  }
+  async leave() {
+    this.generation++;
+    this.endScreen.hide();
+    this.video.pause();
+    await this.save();
+    this.source = null;
+  }
   toggle() {
+    if (this.video.ended) return this.replay();
     if (this.video.paused) this.video.play().catch((e) => this.notify(e.message));
     else this.video.pause();
   }
@@ -207,13 +253,17 @@ export class Player {
   }
   async open(lesson, play = true) {
     const generation = ++this.generation;
+    this.endScreen.hide();
+    this.video.pause();
     await this.save();
     if (generation !== this.generation) return;
     this.source = null;
     this.video.pause();
     this.lesson = lesson;
     await this.captions.load();
+    const settings = await invoke('load_playback_settings');
     if (generation !== this.generation) return;
+    $('autoplay').checked = settings.autoplay;
     this.captions.render(null);
     this.visibility.hide();
     this.lastSave = Date.now();
@@ -338,21 +388,42 @@ export class Player {
       !Number.isFinite(this.video.duration)
     )
       return;
-    lesson.position = this.video.currentTime;
+    const finished = ended || this.video.ended;
+    lesson.position = finished ? 0 : this.video.currentTime;
     lesson.duration = this.video.duration;
-    lesson.completed ||= ended;
+    lesson.completed ||= finished;
     this.lastSave = Date.now();
+    return this.writeProgress(lesson);
+  }
+  async saveNotes(lesson, notes) {
+    lesson.notes = notes;
+    if (
+      lesson === this.lesson &&
+      this.source &&
+      this.video.currentSrc === this.source &&
+      Number.isFinite(this.video.duration)
+    )
+      return this.save();
+    return this.writeProgress(lesson);
+  }
+  async writeProgress(lesson) {
+    const snapshot = {
+      id: lesson.id,
+      position: lesson.position,
+      duration: lesson.duration,
+      completed: lesson.completed,
+      notes: lesson.notes,
+    };
+    const pending = (this.pendingSave || Promise.resolve())
+      .catch(() => {})
+      .then(() => invoke('save_progress', snapshot));
+    this.pendingSave = pending;
     try {
-      await invoke('save_progress', {
-        id: lesson.id,
-        position: lesson.position,
-        duration: lesson.duration,
-        completed: lesson.completed,
-        notes: lesson.notes,
-      });
+      await pending;
       this.onProgress(lesson);
     } catch (e) {
       this.notify('Chưa lưu được tiến độ: ' + e);
+      throw e;
     }
   }
 }

@@ -38,6 +38,16 @@ impl Service {
         }
         let root = self.root.as_ref().ok_or("Choose your files folder first")?;
         match command {
+            "load_playback_settings" => {
+                serde_json::to_value(preferences::load_playback(&database::open(root)?)?)
+                    .map_err(|e| e.to_string())
+            }
+            "save_playback_settings" => {
+                let settings =
+                    serde_json::from_value(args["settings"].clone()).map_err(|e| e.to_string())?;
+                preferences::save_playback(&database::open(root)?, &settings)?;
+                Ok(Value::Null)
+            }
             "load_caption_settings" => {
                 serde_json::to_value(preferences::load_captions(&database::open(root)?)?)
                     .map_err(|e| e.to_string())

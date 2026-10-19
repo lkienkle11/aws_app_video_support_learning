@@ -83,3 +83,12 @@ python3 scripts/library/repair_mp4.py --apply
 Windows có thể dùng `py -3` thay `python3`. Đây là bước sửa dữ liệu offline: giữ nguyên video/audio nén, không giảm chất lượng hay độ phân giải; chỉ đổi container. Mỗi file phải qua kiểm tra toàn bộ packet và codec configuration trước khi thay thế. Tên file giữ nguyên nên phụ đề, mô tả, ID bài học và tiến độ vẫn gắn đúng bài. Báo cáo append tại `docs/reports/mp4-repair.jsonl`. Chạy lại trên thư viện đã sửa sẽ không remux lại.
 
 Xem [hướng dẫn đóng gói](PACKAGING.md) để tạo gói còn thiếu. Yêu cầu WebView và dependency dựa trên [Tauri prerequisites](https://v2.tauri.app/start/prerequisites/).
+
+## Tiếp tục học và tự chuyển bài
+
+- Video đang xem được lưu vị trí khoảng mỗi 5 giây, khi tạm dừng, đổi bài, về thư viện hoặc đóng cửa sổ bình thường. Mở lại bài đang xem dở sẽ tiếp tục từ vị trí đã lưu.
+- Tiến độ, trạng thái hoàn thành và ghi chú nằm trong `files/cloud-study.sqlite` của thư viện đang chọn; vẫn giữ khi khởi động lại hoặc quét lại thư viện.
+- Khi video phát hết, ứng dụng đánh dấu hoàn thành và lưu vị trí 0. Mở lại bài đó bắt đầu từ đầu; nếu phát lại rồi dừng giữa chừng, lần tiếp theo tiếp tục ở vị trí mới.
+- Trong ⚙ của trình phát, bật/tắt **Tự phát bài tiếp**. Lựa chọn được lưu vào SQLite theo thư viện.
+- Nếu bật và còn bài tiếp, khi video kết thúc sẽ đếm ngược **3 giây**. **Chuyển ngay** bỏ qua thời gian chờ; **Hủy** dừng tự chuyển và hiện **Phát lại**. Khi tắt tự chuyển hoặc ở bài cuối, màn hình kết thúc có **Phát lại**; nếu còn bài tiếp vẫn có **Chuyển ngay**.
+- Đổi bài hoặc rời trình phát sẽ hủy bộ đếm cũ. Mất điện/force quit có thể làm mất phần kể từ lần tự lưu gần nhất.

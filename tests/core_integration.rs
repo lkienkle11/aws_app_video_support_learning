@@ -82,3 +82,61 @@ fn library_paths_subtitles_and_edits_are_validated() {
     assert!(service.dispatch("import_subtitle",json!({"id":"001-Test-abcd-git.ir.mp4","source":temp.path().join("outside.srt"),"language":"vi"})).is_err());
     assert!(service.dispatch("import_subtitle",json!({"id":"001-Test-abcd-git.ir.mp4","source":temp.path().join("outside.srt"),"language":"../bad"})).is_err());
 }
+
+#[test]
+fn progress_notes_and_autoplay_survive_service_restart_and_rescan() {
+    let temp = tempfile::tempdir().unwrap();
+    let root = temp.path();
+    fs::write(root.join("001-First.mp4"), b"\x00\x00\x00\x18ftypisom").unwrap();
+    fs::write(root.join("002-Second.mp4"), b"\x00\x00\x00\x18ftypisom").unwrap();
+    let mut service = Service::default();
+    service
+        .dispatch("open_library", json!({"path":root}))
+        .unwrap();
+    assert_eq!(
+        service
+            .dispatch("load_playback_settings", json!({}))
+            .unwrap()["autoplay"],
+        true
+    );
+    service
+        .dispatch(
+            "save_playback_settings",
+            json!({"settings":{"autoplay":false}}),
+        )
+        .unwrap();
+    assert!(service
+        .dispatch(
+            "save_playback_settings",
+            json!({"settings":{"autoplay":"false"}})
+        )
+        .is_err());
+    service.dispatch("save_progress", json!({"id":"001-First.mp4","position":32.25,"duration":100,"completed":false,"notes":"Ghi chú"})).unwrap();
+    drop(service);
+    let mut reopened = Service::default();
+    reopened
+        .dispatch("open_library", json!({"path":root}))
+        .unwrap();
+    let lessons = reopened
+        .dispatch("search_lessons", json!({"query":"","language":""}))
+        .unwrap();
+    assert_eq!(lessons[0]["position"], 32.25);
+    assert_eq!(lessons[0]["completed"], false);
+    assert_eq!(lessons[0]["notes"], "Ghi chú");
+    assert_eq!(
+        reopened
+            .dispatch("load_playback_settings", json!({}))
+            .unwrap()["autoplay"],
+        false
+    );
+    reopened.dispatch("save_progress", json!({"id":"001-First.mp4","position":0,"duration":100,"completed":true,"notes":"Ghi chú"})).unwrap();
+    reopened
+        .dispatch("open_library", json!({"path":root}))
+        .unwrap();
+    let lessons = reopened
+        .dispatch("search_lessons", json!({"query":"","language":""}))
+        .unwrap();
+    assert_eq!(lessons[0]["position"], 0.0);
+    assert_eq!(lessons[0]["completed"], true);
+    assert_eq!(lessons[0]["notes"], "Ghi chú");
+}
