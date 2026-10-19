@@ -1,0 +1,281 @@
+/* Tablet: course navigation becomes a compact header; video keeps full width. */
+@media (max-width: 900px) {
+  .sidebar {
+    position: relative;
+    inset: auto;
+    width: 100%;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    overflow: visible;
+    border-right: 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .sidebar .brand {
+    margin: 0 14px 0 0;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+  .brand small,
+  .workspace-label,
+  #chapters,
+  .sidebar-bottom small {
+    display: none;
+  }
+  .sidebar .nav {
+    width: auto;
+    margin: 0;
+    padding: 9px;
+    font-size: 11px;
+    gap: 6px;
+  }
+  .sidebar-bottom {
+    position: static;
+    width: auto;
+    margin-left: auto;
+    padding: 0;
+    border: 0;
+    font-size: 0;
+    flex-shrink: 0;
+  }
+  .sidebar-bottom .status-dot {
+    display: none;
+  }
+  .sidebar-bottom button {
+    font-size: 19px;
+    float: none;
+    padding: 10px;
+  }
+  main {
+    margin-left: 0;
+    min-width: 0;
+  }
+  .topbar {
+    height: auto;
+    min-height: 56px;
+    padding: 12px 20px;
+    gap: 12px;
+  }
+  .breadcrumbs {
+    min-width: 0;
+    line-height: 1.7;
+  }
+  .top-actions {
+    gap: 10px;
+    flex-shrink: 0;
+  }
+  .content {
+    padding: 22px 20px 0;
+  }
+  .watch-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .playlist {
+    width: 100%;
+    max-height: 360px;
+  }
+  .lesson-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .filters {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .search-box {
+    grid-column: 1 / -1;
+  }
+  .filters select {
+    max-width: none;
+    width: 100%;
+  }
+  .hero-copy {
+    width: 65%;
+  }
+  .cloud-art {
+    width: 40%;
+    opacity: 0.6;
+  }
+}
+
+@media (max-width: 600px) {
+  .sidebar {
+    flex-wrap: wrap;
+    padding: 10px 12px;
+  }
+  .sidebar .brand {
+    flex: 1;
+    margin-right: 0;
+  }
+  .sidebar-bottom {
+    order: 1;
+  }
+  .sidebar .nav {
+    order: 2;
+    flex: 1;
+    justify-content: center;
+    min-width: 0;
+    font-size: 10px;
+  }
+  .sidebar .nav:first-of-type {
+    flex-basis: 38%;
+  }
+  .brand small {
+    display: block;
+    font-size: 6px;
+  }
+  .topbar {
+    padding: 9px 12px;
+  }
+  .offline,
+  .avatar {
+    display: none;
+  }
+  .content {
+    padding: 20px 12px 0;
+  }
+  .page-heading {
+    margin-bottom: 18px;
+  }
+  .page-heading h1 {
+    font-size: 24px;
+    line-height: 1.35;
+  }
+  .page-heading p {
+    line-height: 1.7;
+  }
+  .course-badge {
+    display: none;
+  }
+  .hero {
+    min-height: 290px;
+  }
+  .hero-copy {
+    width: 100%;
+    padding: 24px;
+  }
+  .hero h2 {
+    font-size: 31px;
+  }
+  .cloud-art {
+    opacity: 0.17;
+    width: 180px;
+    right: -25px;
+    pointer-events: none;
+  }
+  .stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 22px 0;
+    margin-bottom: 25px;
+  }
+  .stats > div:nth-child(2) {
+    border-right: 0;
+  }
+  .stats > div {
+    min-width: 0;
+    padding: 0 14px;
+  }
+  .stats small {
+    font-size: 9px;
+  }
+  .filters {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  #display-language {
+    grid-column: 1 / -1;
+  }
+  .search-box kbd {
+    display: none;
+  }
+  .lesson-grid {
+    gap: 12px;
+  }
+  .card-art {
+    height: 105px;
+  }
+  .card-body {
+    padding: 10px;
+  }
+  .card-footer {
+    flex-wrap: wrap;
+    gap: 7px;
+  }
+  .section-heading h2 {
+    font-size: 17px;
+  }
+  .section-heading p {
+    max-width: 210px;
+    line-height: 1.6;
+  }
+  .section-heading .text-button {
+    font-size: 9px;
+  }
+  .lesson-heading {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    padding: 17px 0;
+  }
+  .lesson-heading h1 {
+    font-size: 19px;
+  }
+  .tabs {
+    gap: 20px;
+  }
+  .tabs button {
+    font-size: 11px;
+  }
+  .control-row {
+    gap: 1px;
+  }
+  .control-row button {
+    min-width: 22px;
+    padding: 3px;
+    font-size: 14px;
+  }
+  .control-row #volume {
+    display: none;
+  }
+  .control-row #time {
+    font-size: 8px;
+    margin-left: 2px;
+  }
+  .player-controls {
+    padding: 15px 6px 5px;
+  }
+  .player-settings {
+    bottom: 58px;
+    right: 6px;
+    min-width: 240px;
+    padding: 10px;
+    max-height: calc(100% - 62px);
+  }
+  .player-settings label {
+    font-size: 10px;
+  }
+  .center-play {
+    width: 42px;
+    height: 42px;
+    font-size: 18px;
+  }
+  footer {
+    gap: 12px;
+    flex-wrap: wrap;
+    line-height: 1.7;
+  }
+  dialog {
+    padding: 18px;
+  }
+}
+
+@media (max-width: 360px) {
+  .lesson-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .card-art {
+    height: 155px;
+  }
+  .control-row button {
+    min-width: 20px;
+    font-size: 12px;
+  }
+}

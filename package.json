@@ -9,7 +9,7 @@
     "build:binary": "tauri build --no-bundle",
     "test": "node --test tests/*.test.mjs",
     "lint:commit": "commitlint --edit",
-    "prepare": "node scripts/install-hooks.mjs"
+    "prepare": "node scripts/development/install-hooks.mjs"
   },
   "devDependencies": {
     "@commitlint/cli": "^20.0.0",

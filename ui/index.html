@@ -4,7 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Cloud Study</title>
-    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="styles/library.css" />
+    <link rel="stylesheet" href="styles/player.css" />
+    <link rel="stylesheet" href="styles/responsive.css" />
+    <link rel="stylesheet" href="styles/mobile.css" />
   </head>
   <body>
     <aside class="sidebar">
@@ -128,6 +131,13 @@
             <div class="watch-main">
               <div id="player" class="player" tabindex="0" aria-label="Trình phát video">
                 <video id="video" preload="metadata" playsinline></video>
+                <div
+                  id="caption-overlay"
+                  class="caption-overlay"
+                  title="Kéo để di chuyển phụ đề"
+                  aria-live="off"
+                  hidden
+                ></div>
                 <div id="video-empty" class="video-empty">Chọn bài học để phát</div>
                 <button id="center-play" class="center-play" title="Phát / Tạm dừng">▶</button>
                 <div id="seek-feedback" class="seek-feedback" hidden></div>
@@ -188,10 +198,13 @@
                   ><label
                     >Cỡ phụ đề
                     <select id="caption-size">
+                      <option value="12">Rất nhỏ</option>
                       <option value="18">Nhỏ</option>
                       <option value="24" selected>Vừa</option>
                       <option value="32">Lớn</option>
                       <option value="40">Rất lớn</option>
+                      <option value="48">48 px</option>
+                      <option value="64">64 px</option>
                     </select></label
                   ><label
                     >Nền phụ đề
@@ -215,7 +228,9 @@
                       value="0" /></label
                   ><label>Tự phát bài tiếp <input id="autoplay" type="checkbox" checked /></label
                   ><label>Lặp lại video <input id="loop" type="checkbox" /></label
-                  ><small>Chất lượng: bản gốc trên máy</small>
+                  ><button id="caption-reset" type="button">Đặt lại vị trí phụ đề</button
+                  ><small>Kéo phụ đề để di chuyển · lưu trong SQLite</small>
+                  <small>MP4 gốc · không chuyển đổi chất lượng</small>
                 </div>
               </div>
               <div class="lesson-heading">
@@ -302,6 +317,6 @@
       </form>
     </dialog>
     <div id="toast" role="status" hidden></div>
-    <script type="module" src="app.js"></script>
+    <script type="module" src="features/library/controller.js"></script>
   </body>
 </html>

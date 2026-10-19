@@ -1,7 +1,6 @@
-pub mod catalog;
-pub mod database;
+pub mod application;
 #[cfg(feature = "desktop")]
 pub mod desktop;
-pub mod model;
-pub mod service;
-pub mod subtitles;
+pub mod domain;
+pub mod infrastructure;
+pub mod media;

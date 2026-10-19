@@ -1,0 +1,451 @@
+.watch-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 278px;
+  gap: 24px;
+  margin-top: 14px;
+}
+.watch-main {
+  min-width: 0;
+}
+.player {
+  position: relative;
+  background: #111815;
+  aspect-ratio: 16/9;
+  border-radius: 10px;
+  overflow: hidden;
+  color: white;
+  --caption-size: 24px;
+}
+.player video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.video-empty {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: #85958a;
+}
+.center-play {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 60px;
+  height: 60px;
+  background: #193b2dd0;
+  border-radius: 50%;
+  color: white;
+  font-size: 23px;
+}
+.player.playing .center-play {
+  display: none;
+}
+.player-controls {
+  position: absolute;
+  inset: auto 0 0;
+  padding: 25px 13px 6px;
+  background: linear-gradient(transparent, #000c);
+  transition: opacity 0.2s;
+}
+.player:not(.controls-visible) .player-controls {
+  opacity: 0;
+  pointer-events: none;
+}
+.player:not(.controls-visible) .center-play {
+  display: none;
+}
+.player:not(.controls-visible) .player-settings {
+  display: none;
+}
+.player.controls-visible .player-controls {
+  opacity: 1;
+  pointer-events: auto;
+}
+.caption-overlay {
+  width: max-content;
+  overflow-y: auto;
+  position: absolute;
+  z-index: 3;
+  max-width: calc(100% - 24px);
+  padding: 3px 7px;
+  border-radius: 4px;
+  transform: translateX(-50%);
+  text-align: center;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+  line-height: 1.25;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+.caption-overlay:active {
+  cursor: grabbing;
+}
+.player-controls {
+  z-index: 4;
+}
+.player-settings {
+  z-index: 5;
+}
+.seek-row {
+  position: relative;
+  height: 18px;
+  display: flex;
+  align-items: center;
+}
+input[type='range'] {
+  accent-color: #86ba91;
+  cursor: pointer;
+}
+.seek-row input {
+  width: 100%;
+  margin: 0;
+  height: 5px;
+}
+.control-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  height: 35px;
+  font-size: 10px;
+}
+.control-row button {
+  color: white;
+  padding: 5px;
+  min-width: 25px;
+  font-size: 15px;
+}
+.control-row input {
+  width: 60px;
+  height: 4px;
+}
+.control-row #time {
+  font-size: 9px;
+  white-space: nowrap;
+  margin-left: 5px;
+}
+.control-spacer {
+  flex: 1;
+}
+.control-row #captions-toggle {
+  font-size: 11px;
+  font-weight: 800;
+}
+.control-row button.enabled {
+  color: #a9d79c;
+  border-bottom: 2px solid #a9d79c;
+}
+.player-settings {
+  position: absolute;
+  bottom: 64px;
+  right: 12px;
+  background: #17271fed;
+  box-shadow: 0 4px 20px #0005;
+  border: 1px solid #ffffff20;
+  backdrop-filter: blur(15px);
+  border-radius: 8px;
+  padding: 14px;
+  min-width: 250px;
+  max-height: calc(100% - 75px);
+  overflow-y: auto;
+  z-index: 5;
+}
+.player-settings label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  font-size: 11px;
+  margin: 0 0 8px;
+}
+.player-settings select,
+.player-settings input[type='number'] {
+  background: #314b3e;
+  border-color: #4c6555;
+  color: white;
+  font-size: 10px;
+  padding: 4px;
+  width: 115px;
+}
+.player-settings small {
+  font-size: 9px;
+  color: #a0b7a7;
+}
+.seek-preview {
+  position: absolute;
+  bottom: 22px;
+  left: 0;
+  width: 162px;
+  background: #17241c;
+  border: 1px solid #8da68d;
+  border-radius: 5px;
+  padding: 2px;
+  pointer-events: none;
+  text-align: center;
+  font-size: 10px;
+  z-index: 8;
+}
+.seek-preview #preview-frame {
+  width: 156px;
+  height: 88px;
+  background-size: 400% 300%;
+  background-color: #283a2c;
+}
+.seek-preview span {
+  display: block;
+  padding: 4px;
+}
+.seek-feedback {
+  position: absolute;
+  inset: 35% 30%;
+  text-align: center;
+  padding: 15px;
+  background: #0009;
+  border-radius: 10px;
+}
+.lesson-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 23px 0 17px;
+  gap: 12px;
+}
+.lesson-heading h1 {
+  font-size: 21px;
+  line-height: 1.5;
+  margin: 7px 0;
+}
+.lesson-heading p {
+  font-size: 11px;
+  color: #8a9c8e;
+  line-height: 1.6;
+}
+.lesson-heading button {
+  white-space: nowrap;
+}
+.tabs {
+  display: flex;
+  gap: 27px;
+  border-bottom: 1px solid var(--border);
+}
+.tabs button {
+  padding: 14px 0;
+  color: #8c9a8d;
+  font-size: 12px;
+}
+.tabs .active {
+  color: #347555;
+  border-bottom: 2px solid #347555;
+}
+.tab-content {
+  padding: 18px 0;
+  line-height: 1.9;
+  font-size: 12px;
+  color: #7a8c7d;
+  white-space: normal;
+}
+#watch-description {
+  white-space: pre-line;
+}
+.learning-tip {
+  padding: 15px 18px;
+  border: 1px solid #e2eadc;
+  background: #f0f5eb;
+  border-radius: 7px;
+  margin: 20px 0;
+}
+.learning-tip b {
+  color: #618351;
+  font-size: 11px;
+}
+.learning-tip p {
+  margin-bottom: 0;
+  font-size: 11px;
+}
+.lesson-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.lesson-actions input {
+  width: 50px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 4px;
+}
+.tab-content small {
+  display: block;
+  margin-top: 12px;
+  color: #9aaa99;
+}
+.playlist {
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: white;
+  align-self: start;
+  max-height: 750px;
+  overflow-y: auto;
+}
+.playlist-heading {
+  position: sticky;
+  top: 0;
+  background: #f0f4ec;
+  padding: 19px;
+  z-index: 2;
+}
+.playlist-heading b {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+}
+.playlist-heading small {
+  font-size: 10px;
+  color: #91a084;
+  margin-top: 8px;
+  display: block;
+}
+.playlist-item {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 14px;
+  border-bottom: 1px solid #edf1e8;
+  width: 100%;
+  text-align: left;
+  font-size: 11px;
+  line-height: 1.5;
+  color: #7e8f7b;
+}
+.playlist-item.active {
+  background: #eaf4e6;
+  color: #3d7650;
+  border-left: 3px solid #558f61;
+}
+.playlist-item span {
+  font-size: 9px;
+  color: #9dac93;
+  min-width: 25px;
+}
+.playlist-item small {
+  display: block;
+  font-size: 9px;
+  color: #a1ad95;
+  margin-top: 3px;
+}
+.theater-mode .watch-layout {
+  display: block;
+}
+.theater-mode .playlist {
+  display: none;
+}
+.player:fullscreen {
+  border-radius: 0;
+  width: 100vw;
+  height: 100vh;
+}
+.player:-webkit-full-screen {
+  border-radius: 0;
+  width: 100vw;
+  height: 100vh;
+}
+textarea {
+  width: 100%;
+  resize: vertical;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 13px;
+  color: #47634b;
+  background: white;
+  margin: 12px 0;
+}
+#transcript-search {
+  padding: 10px;
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+}
+#transcript {
+  max-height: 420px;
+  overflow-y: auto;
+  margin-top: 12px;
+}
+.cue {
+  display: flex;
+  gap: 12px;
+  padding: 9px;
+  width: 100%;
+  text-align: left;
+  font-size: 12px;
+  line-height: 1.6;
+}
+.cue:hover,
+.cue.active {
+  background: #eaf3e5;
+  border-radius: 5px;
+}
+.cue time {
+  color: #5b8f63;
+  font-size: 10px;
+  min-width: 38px;
+  padding-top: 3px;
+}
+.cue span {
+  flex: 1;
+}
+dialog {
+  border: 1px solid #dce6d8;
+  border-radius: 12px;
+  width: 560px;
+  max-width: 90vw;
+  padding: 25px;
+  color: #34563d;
+  background: #fafcf8;
+  box-shadow: 0 20px 80px #142b3333;
+}
+dialog::backdrop {
+  background: #18332588;
+  backdrop-filter: blur(4px);
+}
+dialog h2 {
+  font-size: 20px;
+}
+dialog p {
+  font-size: 12px;
+  color: #8b9d87;
+}
+dialog label {
+  display: block;
+  margin: 13px 0;
+  font-size: 12px;
+}
+dialog input {
+  display: block;
+  width: 100%;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  margin-top: 7px;
+}
+dialog form > div {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+#toast {
+  position: fixed;
+  bottom: 25px;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: 75vw;
+  padding: 13px 20px;
+  background: #274a38;
+  color: white;
+  box-shadow: 0 8px 24px #0002;
+  border-radius: 7px;
+  z-index: 100;
+  font-size: 12px;
+  white-space: pre-line;
+}

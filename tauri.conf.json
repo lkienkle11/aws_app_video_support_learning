@@ -5,8 +5,8 @@
   "identifier": "local.cloudstudy.desktop",
   "build": {
     "frontendDist": "ui",
-    "beforeBuildCommand": "node scripts/build-core.mjs",
-    "beforeDevCommand": "node scripts/build-core.mjs"
+    "beforeBuildCommand": "node scripts/build/core.mjs",
+    "beforeDevCommand": "node scripts/build/core.mjs"
   },
   "app": {
     "withGlobalTauri": true,
@@ -15,8 +15,8 @@
         "title": "Cloud Study · AWS Learning Studio",
         "width": 1320,
         "height": 880,
-        "minWidth": 920,
-        "minHeight": 640
+        "minWidth": 320,
+        "minHeight": 400
       }
     ],
     "security": {

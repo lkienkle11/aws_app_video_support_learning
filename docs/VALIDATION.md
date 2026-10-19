@@ -43,3 +43,20 @@ Host GUI có mã Rust/Tauri nhưng toàn bộ RSS của host được tính vào
 - Các gói local chưa ký chứng thực/notarize; bản macOS đã mở trực tiếp thành công trên máy build.
 
 Mô tả/tiêu đề Việt là nội dung biên soạn có thể sửa; phụ đề gốc là tiếng Anh. App hỗ trợ nhập nhiều ngôn ngữ, không tạo bản dịch phụ đề không có trong nguồn.
+
+
+## Refactor và dọn dẹp tiếp theo
+
+Rust chia application/domain/infrastructure/media/desktop; UI chia library/player/shared/styles; scripts chia build/development/library/quality/maintenance. Node hiện có 7 tests, gồm timer controls và hình học phụ đề. Rust integration kiểm thêm lưu/đọc caption preferences qua SQLite và từ chối cỡ chữ không hợp lệ. Native macOS kiểm cửa sổ 375 px và mở bài học không tự cuộn xuống playlist. Thử bố cục 320–1320 px không tràn ngang; các bản build Windows/Linux nêu phía trên thuộc phiên trước, đã dọn output cũ và chưa build lại sau refactor.
+
+Desktop nhúng HTML qua Tauri; không có web server production. Không chuyển mã MP4 lúc chạy. Các báo cáo đo và cleanup local chuyển vào `docs/reports/` (gitignored). Bản macOS hiện tại được đo lại khi đóng gói; số đo cũ ở bảng trên không đại diện bản mới.
+
+Docker Desktop đã restart có kiểm soát để nhả các file build dự án bị VM giữ sau khi xóa. Redis SAVE thành công; PostgreSQL/Redis khởi động lại healthy, giữ nguyên ID container/volume và Redis key count. Không prune Docker hoặc đụng dữ liệu ứng dụng khác.
+
+
+Kết quả cuối sau cleanup: repo gồm toàn bộ khóa học 4.807.029.629 byte (<7 GB); app macOS 5.045.680 byte (<20 MB); backend mới đạt peak sampled RSS 17.154.048 byte. Dung lượng trống trước phiên 55.709.261.824 byte, sau dọn 73.139.851.264 byte, tăng 17.430.589.440 byte. Mốc 134 GB trống chưa đạt/không khớp số đo thực tế; không xóa dữ liệu hay cache khác để bù. Không còn SDK, target hoặc node_modules trong repo; bootstrap lại khi phát triển.
+
+SHA-256 xác minh 555 MP4/SRT nguồn cùng hash logical tiến độ/ghi chú trong 2 SQLite không thay đổi. Redis và PostgreSQL vẫn healthy sau cleanup. Các kiểm thử/build hoàn thành trước khi xóa cache; không build lại sau dọn để tránh tái tạo dung lượng.
+
+
+Người dùng xác nhận tiêu chí dung lượng là thu hồi ít nhất 12 GB do dự án tạo ra. Số thu hồi đã ghi nhận khoảng 17,4 GB đạt tiêu chí này; không yêu cầu ổ đĩa trống tuyệt đối 134 GB.

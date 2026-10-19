@@ -1,0 +1,62 @@
+@media (min-width: 1550px) {
+  .lesson-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+@media (max-width: 1150px) {
+  .sidebar {
+    width: 205px;
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+  .sidebar-bottom {
+    width: 204px;
+  }
+  main {
+    margin-left: 205px;
+  }
+  .content {
+    padding: 25px;
+  }
+  .topbar {
+    padding: 0 25px;
+  }
+  .filters {
+    flex-wrap: wrap;
+  }
+  .search-box {
+    flex-basis: 45%;
+  }
+  .hero-meta {
+    display: block;
+    margin: 13px 0 0;
+  }
+  .stats > div {
+    padding: 0 13px;
+    gap: 9px;
+  }
+  .stats small {
+    font-size: 8px;
+  }
+  .watch-layout {
+    grid-template-columns: minmax(0, 1fr) 230px;
+  }
+  .cloud-art {
+    right: -20px;
+  }
+  .control-row {
+    gap: 1px;
+  }
+  .control-row input {
+    width: 40px;
+  }
+  .playlist-item {
+    font-size: 10px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}

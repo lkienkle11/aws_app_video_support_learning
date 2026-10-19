@@ -1,7 +1,7 @@
 use serde_json::{json, Value};
 use std::io::{self, BufRead, Write};
 fn main() {
-    let mut service = cloud_study::service::Service::default();
+    let mut service = cloud_study::application::Service::default();
     let stdin = io::stdin();
     let mut stdout = io::stdout().lock();
     for line in stdin.lock().lines() {

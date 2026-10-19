@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { time, localized, escapeHTML, spritePosition } from '../ui/lib/utils.js';
+import { time, localized, escapeHTML, spritePosition } from '../ui/shared/utils.js';
 test('time handles unknown duration, negatives and hour boundaries', () => {
   assert.equal(time(NaN), '0:00');
   assert.equal(time(-1), '0:00');

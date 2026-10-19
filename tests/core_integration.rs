@@ -1,4 +1,4 @@
-use cloud_study::service::Service;
+use cloud_study::application::Service;
 use serde_json::json;
 use std::fs;
 
@@ -19,6 +19,30 @@ fn library_paths_subtitles_and_edits_are_validated() {
         .dispatch("open_library", json!({"path":root}))
         .unwrap();
     assert_eq!(info["lessons"], 1);
+    let defaults = service
+        .dispatch("load_caption_settings", json!({}))
+        .unwrap();
+    assert_eq!(defaults["x"], 0.5);
+    let settings = json!({"size":32.0,"x":0.3,"y":0.7,"color":"white","background":"transparent"});
+    service
+        .dispatch("save_caption_settings", json!({"settings":settings}))
+        .unwrap();
+    let mut reopened = Service::default();
+    reopened
+        .dispatch("open_library", json!({"path":root}))
+        .unwrap();
+    assert_eq!(
+        reopened
+            .dispatch("load_caption_settings", json!({}))
+            .unwrap(),
+        settings
+    );
+    assert!(service
+        .dispatch(
+            "save_caption_settings",
+            json!({"settings":{"size":800,"x":0,"y":0}})
+        )
+        .is_err());
     let lessons = service
         .dispatch("search_lessons", json!({"query":"","language":""}))
         .unwrap();
