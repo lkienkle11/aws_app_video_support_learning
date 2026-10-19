@@ -93,6 +93,8 @@ Build sẽ tự tạo sidecar backend theo target triple. Khi phát hành, giữ
 
 `python3 scripts/library/prepare_library.py`: cần ffprobe/ffmpeg, tạo sidecar song ngữ và thumbnail; giữ file đã có. Đã xử lý toàn bộ 277 video. Nội dung mô tả có thể sửa trên giao diện.
 
+Nguồn khóa học có 274 file đuôi `.mp4` nhưng container thực là Matroska. Đã sửa một lần sang MP4 thật, giữ nguyên bitstream H.264/AAC. Với nguồn giải nén mới, chạy `python3 scripts/library/repair_mp4.py` để kiểm tra, rồi thêm `--apply` để sửa: script chỉ thay thế nguyên tử sau khi mọi packet và cấu hình codec khớp nguồn. Cần ffmpeg/ffprobe khi chuẩn bị dữ liệu; app không remux/transcode lúc phát. Bằng chứng mỗi file lưu tại `docs/reports/mp4-repair.jsonl` (gitignored).
+
 Git đã init ở root repository này. `npm ci` cài hook `commit-msg` dùng commitlint JS. Commit theo Conventional Commits, ví dụ `feat: add offline course player`. Hook chặn câu commit không hợp lệ.
 
 RTK và CodeGraph đã init ở root repository. Dùng bản CLI có sẵn trên máy; các bản sao toolchain/cache nặng trong `tools/` được dọn sau build. CodeGraph giữ cấu hình/index local tại `.codegraph/`; chạy `codegraph sync` sau thay đổi. Hook `pre-commit` chặn file nặng trên 1 MB, media, database và output sinh tự động; hook `commit-msg` kiểm Conventional Commits.
@@ -109,6 +111,6 @@ Backend chạy trong `cloud-study-core`; host giao diện `cloud-study` được
 
 `python3 scripts/quality/measure_core.py` kiểm tra thư viện thật, tìm kiếm Anh/Việt, đọc mọi phụ đề và lấy mẫu RSS. `node scripts/quality/check-size.mjs 'target/release/bundle/macos/Cloud Study.app'` kiểm toàn bộ gói gồm cả backend. Xem báo cáo tại `docs/reports/` để biết số đo cụ thể, phạm vi và hạn chế. Số đo local không phải bảo đảm cho mọi video, mọi máy hoặc mọi hệ điều hành. Chưa kiểm GUI runtime Windows/Linux.
 
-Đo cuối phiên: backend macOS bản hiện tại khoảng 17,15 MB RSS cao nhất lấy mẫu; backend Linux ARM64 phiên trước khoảng 6,03 MB; nhóm WebView/Tauri macOS khoảng 178,18 MB trong 10 giây phát video 1080p. RAM frontend Linux và RAM Windows chưa được đo. Các báo cáo JSON lưu rõ phương pháp và PID quan sát; không trộn RAM backend với nhóm WebView.
+Đo cuối phiên: backend macOS bản hiện tại khoảng 17,33 MB RSS cao nhất lấy mẫu; backend Linux ARM64 phiên trước khoảng 6,03 MB; nhóm WebView/Tauri macOS khoảng 178,18 MB trong 10 giây phát video 1080p. RAM frontend Linux và RAM Windows chưa được đo. Các báo cáo JSON lưu rõ phương pháp và PID quan sát; không trộn RAM backend với nhóm WebView.
 
 PiP, fullscreen và codec phụ thuộc WebView/OS; app thông báo khi API không được hỗ trợ. Phụ đề trong cửa sổ PiP phụ thuộc hệ điều hành. Không có chọn nhiều độ phân giải vì nguồn chỉ cung cấp một bản video.

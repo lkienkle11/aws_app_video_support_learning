@@ -6,6 +6,7 @@
     width: 100%;
     padding: 12px 16px;
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: 8px;
     overflow: visible;
@@ -14,7 +15,7 @@
   }
   .sidebar .brand {
     margin: 0 14px 0 0;
-    font-size: 20px;
+    font-size: 21px;
     flex-shrink: 0;
   }
   .brand small,
@@ -27,7 +28,7 @@
     width: auto;
     margin: 0;
     padding: 9px;
-    font-size: 11px;
+    font-size: 12px;
     gap: 6px;
   }
   .sidebar-bottom {
@@ -43,7 +44,7 @@
     display: none;
   }
   .sidebar-bottom button {
-    font-size: 19px;
+    font-size: 20px;
     float: none;
     padding: 10px;
   }
@@ -115,14 +116,14 @@
     flex: 1;
     justify-content: center;
     min-width: 0;
-    font-size: 10px;
+    font-size: 11px;
   }
   .sidebar .nav:first-of-type {
     flex-basis: 38%;
   }
   .brand small {
     display: block;
-    font-size: 6px;
+    font-size: 7px;
   }
   .topbar {
     padding: 9px 12px;
@@ -138,7 +139,7 @@
     margin-bottom: 18px;
   }
   .page-heading h1 {
-    font-size: 24px;
+    font-size: 25px;
     line-height: 1.35;
   }
   .page-heading p {
@@ -155,7 +156,7 @@
     padding: 24px;
   }
   .hero h2 {
-    font-size: 31px;
+    font-size: 32px;
   }
   .cloud-art {
     opacity: 0.17;
@@ -176,7 +177,7 @@
     padding: 0 14px;
   }
   .stats small {
-    font-size: 9px;
+    font-size: 10px;
   }
   .filters {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -201,14 +202,14 @@
     gap: 7px;
   }
   .section-heading h2 {
-    font-size: 17px;
+    font-size: 18px;
   }
   .section-heading p {
     max-width: 210px;
     line-height: 1.6;
   }
   .section-heading .text-button {
-    font-size: 9px;
+    font-size: 10px;
   }
   .lesson-heading {
     align-items: flex-start;
@@ -216,13 +217,13 @@
     padding: 17px 0;
   }
   .lesson-heading h1 {
-    font-size: 19px;
+    font-size: 20px;
   }
   .tabs {
     gap: 20px;
   }
   .tabs button {
-    font-size: 11px;
+    font-size: 12px;
   }
   .control-row {
     gap: 1px;
@@ -230,13 +231,13 @@
   .control-row button {
     min-width: 22px;
     padding: 3px;
-    font-size: 14px;
+    font-size: 15px;
   }
   .control-row #volume {
     display: none;
   }
   .control-row #time {
-    font-size: 8px;
+    font-size: 9px;
     margin-left: 2px;
   }
   .player-controls {
@@ -250,12 +251,12 @@
     max-height: calc(100% - 62px);
   }
   .player-settings label {
-    font-size: 10px;
+    font-size: 11px;
   }
   .center-play {
     width: 42px;
     height: 42px;
-    font-size: 18px;
+    font-size: 19px;
   }
   footer {
     gap: 12px;
@@ -276,6 +277,6 @@
   }
   .control-row button {
     min-width: 20px;
-    font-size: 12px;
+    font-size: 13px;
   }
 }

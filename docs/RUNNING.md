@@ -70,6 +70,16 @@ Bản portable từ script gồm `cloud-study` và `cloud-study-core` cùng thư
 | Không lưu tiến độ/cài đặt | Thư mục dữ liệu có quyền ghi; không đặt trong Program Files hoặc vùng chỉ đọc. |
 | Cannot start Rust core | Bundle/portable có đủ backend đi cùng; không di chuyển riêng executable GUI. |
 | Có tiếng nhưng không có hình hoặc không phát MP4 | Kiểm tra WebView và codec H.264/AAC của OS; Linux kiểm GStreamer. |
+| App báo `.mp4` nhưng nội dung Matroska/MKV | Nguồn bị đặt sai đuôi. Chuẩn hóa một lần bằng hướng dẫn bên dưới, không cài thêm codec để chữa lỗi đặt sai container. |
 | Sai kiến trúc executable | Dùng gói build đúng CPU và đúng OS. |
+
+Nguồn khóa học đã gặp lỗi 274 file MKV mang đuôi MP4, trong đó có bài 117. Thư viện trên máy này đã được sửa. Nếu giải nén lại nguồn cũ hoặc mang dữ liệu chưa sửa sang máy khác, đóng app rồi chạy tại root repo trên máy có Python 3, ffmpeg và ffprobe:
+
+```sh
+python3 scripts/library/repair_mp4.py
+python3 scripts/library/repair_mp4.py --apply
+```
+
+Windows có thể dùng `py -3` thay `python3`. Đây là bước sửa dữ liệu offline: giữ nguyên video/audio nén, không giảm chất lượng hay độ phân giải; chỉ đổi container. Mỗi file phải qua kiểm tra toàn bộ packet và codec configuration trước khi thay thế. Tên file giữ nguyên nên phụ đề, mô tả, ID bài học và tiến độ vẫn gắn đúng bài. Báo cáo append tại `docs/reports/mp4-repair.jsonl`. Chạy lại trên thư viện đã sửa sẽ không remux lại.
 
 Xem [hướng dẫn đóng gói](PACKAGING.md) để tạo gói còn thiếu. Yêu cầu WebView và dependency dựa trên [Tauri prerequisites](https://v2.tauri.app/start/prerequisites/).

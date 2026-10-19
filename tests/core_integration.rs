@@ -19,6 +19,16 @@ fn library_paths_subtitles_and_edits_are_validated() {
         .dispatch("open_library", json!({"path":root}))
         .unwrap();
     assert_eq!(info["lessons"], 1);
+    let video = root.join("001-Test-abcd-git.ir.mp4");
+    fs::write(&video, [0x1a, 0x45, 0xdf, 0xa3, 0, 0, 0, 0]).unwrap();
+    let error = service
+        .dispatch("media_path", json!({"relative":"001-Test-abcd-git.ir.mp4"}))
+        .unwrap_err();
+    assert!(error.contains("Matroska/MKV"));
+    fs::write(&video, b"\x00\x00\x00\x18ftypisom").unwrap();
+    assert!(service
+        .dispatch("media_path", json!({"relative":"001-Test-abcd-git.ir.mp4"}))
+        .is_ok());
     let defaults = service
         .dispatch("load_caption_settings", json!({}))
         .unwrap();

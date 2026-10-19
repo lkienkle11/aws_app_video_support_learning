@@ -60,3 +60,19 @@ SHA-256 xác minh 555 MP4/SRT nguồn cùng hash logical tiến độ/ghi chú t
 
 
 Người dùng xác nhận tiêu chí dung lượng là thu hồi ít nhất 12 GB do dự án tạo ra. Số thu hồi đã ghi nhận khoảng 17,4 GB đạt tiêu chí này; không yêu cầu ổ đĩa trống tuyệt đối 134 GB.
+
+
+## Sửa lỗi bài 117 không phát được
+
+Lần kiểm codec trước bỏ sót định dạng container: 274/277 file đuôi `.mp4` thực tế là Matroska (magic EBML `1a45dfa3`), dù stream H.264/AAC. AVFoundation báo -11829/-12848 trên bài 117 nguồn. Remux sang MP4 thật bằng `-c copy -movflags +faststart` làm macOS đọc và phát được; không chuyển mã hoặc giảm độ phân giải.
+
+Đã sửa 274 file. Mỗi file chỉ thay thế sau khi codec name/profile/extradata hash và SHA-256 của từng packet video/audio khớp nguồn; báo cáo append tại `docs/reports/mp4-repair.jsonl`. Cả 277 file có header MP4 thật; AVFoundation native nhận playable và thời lượng hợp lệ cho 277/277. Dữ liệu phụ đề/ảnh/sidecar và hash logical progress/notes ở 2 database (1111 mục kiểm tra tổng cộng) không thay đổi. Container overhead tăng khoảng 38,5 MB; không tạo bản video chất lượng khác hoặc cache remux lúc phát.
+
+Bản desktop macOS mới đã phát bài 117 với hình, phụ đề và thời gian tăng tới 0:12/2:18, tua +10 giây thành công. Fixture MKV đặt sai đuôi hiển thị thông báo cụ thể từ backend. Kiểm thử regression Rust kiểm đường media_path từ chối EBML đặt sai đuôi và cho MP4 đi qua; JavaScript tests, Rust tests, fmt/Clippy đều qua. GUI kiểm bằng bản sao dữ liệu để không đổi tiến độ người dùng. Windows/Linux chưa được kiểm runtime trong lần sửa này.
+
+Kiểm thử chuyển bài còn tái hiện được sự kiện pause cũ ghi nhầm position/duration sang bài mới trong thư viện test. Bản sửa buộc currentSrc khớp source của bài trước khi lưu, tắt liên kết source trong lúc chuyển bài và reset time/seek khi nạp video. Test Node mới xác minh sự kiện cũ không sửa tiến độ/ghi chú bài mới, còn source đúng vẫn lưu bình thường. Tổng Node tests hiện là 8.
+
+
+## Tăng cỡ chữ toàn app
+
+Chữ giao diện tăng 1 px; tiêu đề lớn từ 34 px trở lên tăng 2 px. Các stylesheet desktop/tablet/mobile cùng được điều chỉnh; header tablet cho phép xuống dòng. Giữ nguyên cỡ phụ đề người dùng đã lưu. Đã kiểm tra native macOS ở 320, 650 và 1320 px, gồm thư viện và màn hình bài học ở cửa sổ hẹp. Bản `.app` trong dist đã build lại, 5.045.680 byte. 8 Node tests và 3 Rust tests qua; formatter và git diff check qua.

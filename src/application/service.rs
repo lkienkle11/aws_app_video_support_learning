@@ -3,7 +3,7 @@ use crate::{
     domain::Result,
     domain::{LibraryInfo, Sidecar},
     infrastructure::{catalog, database, preferences},
-    media::subtitles,
+    media::{container, subtitles},
 };
 use serde_json::{json, Value};
 use std::{fs, path::PathBuf};
@@ -54,9 +54,11 @@ impl Service {
                 string("language")?,
             )?)
             .map_err(|e| e.to_string()),
-            "media_path" => Ok(json!(
-                catalog::safe_path(root, string("relative")?)?.to_string_lossy()
-            )),
+            "media_path" => {
+                let path = catalog::safe_path(root, string("relative")?)?;
+                container::check_mp4(&path)?;
+                Ok(json!(path.to_string_lossy()))
+            }
             "read_subtitle" => {
                 let path = catalog::safe_path(root, string("relative")?)?;
                 if !matches!(

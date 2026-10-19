@@ -18,7 +18,7 @@ options = parser.parse_args()
 paths = [ROOT/name for name in ['target', 'gen', 'node_modules', 'binaries',
     'tools/npm-cache', 'tools/cargo-linux', 'tools/linux-target', 'tools/xwin',
     'tools/zig', 'tools/zig-cache', 'tools/zig.tar.xz', 'tools/cross',
-    'tools/test-library', 'tools/test-results', 'tools/swift-cache',
+    'tools/test-library', 'tools/test-results', 'tools/swift-cache', 'tools/diagnostics',
     'tools/valid-commit.txt', 'tools/invalid-commit.txt', 'tools/linux-packages.log', 'tools/linux-measure-packages.log', 'tests/support/__pycache__']]
 if options.toolchains:
     paths += [ROOT/name for name in ['tools/cargo', 'tools/rustup', 'tools/codegraph',

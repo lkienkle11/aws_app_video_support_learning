@@ -36,6 +36,7 @@ export class Player {
       this.save();
     };
     v.onloadedmetadata = () => {
+      $('video-empty').hidden = true;
       if (this.lesson)
         v.currentTime = Math.min(this.lesson.position, Math.max(0, v.duration - 0.5));
       this.update();
@@ -50,9 +51,14 @@ export class Player {
     };
     v.onerror = () => {
       $('video-empty').hidden = false;
-      $('video-empty').textContent =
-        'Không phát được video. Kiểm tra file và codec H.264/AAC của hệ điều hành.';
-      this.notify('Không mở được video: ' + (v.error?.message || 'Lỗi trình giải mã'));
+      const reasons = {
+        1: 'Đã hủy tải video.',
+        2: 'Không đọc được video từ thư viện. Kiểm tra đường dẫn và quyền đọc file.',
+        3: 'Không giải mã được video. File có thể hỏng hoặc dùng codec chưa được hỗ trợ.',
+        4: 'WebView không mở được định dạng video này. Cần kiểm tra định dạng thực của file, không chỉ đuôi .mp4.',
+      };
+      $('video-empty').textContent = reasons[v.error?.code] || 'Không mở được video.';
+      this.notify(`${$('video-empty').textContent} ${v.error?.message || ''}`);
     };
     $('previous').onclick = () => this.onNavigate(-1);
     $('next').onclick = () => this.onNavigate(1);
@@ -203,6 +209,7 @@ export class Player {
     const generation = ++this.generation;
     await this.save();
     if (generation !== this.generation) return;
+    this.source = null;
     this.video.pause();
     this.lesson = lesson;
     await this.captions.load();
@@ -213,6 +220,8 @@ export class Player {
     this.video.removeAttribute('src');
     this.video.querySelectorAll('track').forEach((t) => t.remove());
     this.video.load();
+    $('seek').value = 0;
+    this.update();
     this.urls.forEach(URL.revokeObjectURL);
     this.urls = [];
     this.sprite = null;
@@ -225,9 +234,18 @@ export class Player {
     this.offset = 0;
     $('caption-offset').value = 0;
     $('transcript').replaceChildren();
-    const source = await asset(lesson.video);
+    let source;
+    try {
+      source = await asset(lesson.video);
+    } catch (error) {
+      if (generation !== this.generation) return;
+      $('video-empty').textContent = error.message || String(error);
+      $('video-empty').hidden = false;
+      return;
+    }
     if (generation !== this.generation) return;
     this.video.src = source;
+    this.source = this.video.src;
     const stem = lesson.video.replace(/\.[^.]+$/, '');
     asset(`${stem}.sprite.jpg`)
       .then((url) => {
@@ -313,7 +331,13 @@ export class Player {
   }
   async save(ended = false) {
     const lesson = this.lesson;
-    if (!lesson || !Number.isFinite(this.video.duration)) return;
+    if (
+      !lesson ||
+      !this.source ||
+      this.video.currentSrc !== this.source ||
+      !Number.isFinite(this.video.duration)
+    )
+      return;
     lesson.position = this.video.currentTime;
     lesson.duration = this.video.duration;
     lesson.completed ||= ended;

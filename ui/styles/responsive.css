@@ -36,7 +36,7 @@
     gap: 9px;
   }
   .stats small {
-    font-size: 8px;
+    font-size: 9px;
   }
   .watch-layout {
     grid-template-columns: minmax(0, 1fr) 230px;
@@ -51,7 +51,7 @@
     width: 40px;
   }
   .playlist-item {
-    font-size: 10px;
+    font-size: 11px;
   }
 }
 @media (prefers-reduced-motion: reduce) {
