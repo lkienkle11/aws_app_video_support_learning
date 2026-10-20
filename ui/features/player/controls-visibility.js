@@ -7,6 +7,7 @@ export class ControlsVisibility {
     this.clock = clock;
     this.inside = false;
     this.visible = false;
+    this.editingColor = false;
     frame.addEventListener('pointerenter', (event) => {
       if (event.pointerType !== 'touch') {
         this.inside = true;
@@ -18,12 +19,36 @@ export class ControlsVisibility {
     });
     frame.addEventListener('pointerleave', () => {
       this.inside = false;
-      this.hide();
+      this.hideUnlessEditing();
     });
     frame.addEventListener('pointerdown', (event) => {
       if (event.pointerType === 'touch') this.reveal();
     });
-    frame.addEventListener('keydown', () => this.reveal());
+    frame.addEventListener('focusin', (event) => {
+      if (event.target.type === 'color') {
+        this.editingColor = true;
+        this.reveal();
+      }
+    });
+    const finishColorEdit = (event) => {
+      if (event.target.type !== 'color') return;
+      this.editingColor = false;
+      if (this.inside) this.reveal();
+      else this.hide();
+    };
+    frame.addEventListener('focusout', finishColorEdit);
+    frame.addEventListener('change', finishColorEdit);
+    frame.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') this.editingColor = false;
+      this.reveal();
+    });
+    frame.ownerDocument?.addEventListener('pointerdown', (event) => {
+      if (this.editingColor && event.target.type !== 'color') {
+        this.editingColor = false;
+        if (!frame.contains(event.target)) this.hide();
+        else this.reveal();
+      }
+    });
     this.hide();
   }
   reveal() {
@@ -31,9 +56,13 @@ export class ControlsVisibility {
     this.visible = true;
     this.frame.classList.add('controls-visible');
     this.onChange(true);
-    this.timer = this.clock.setTimeout(() => this.hide(), 3000);
+    this.timer = this.clock.setTimeout(() => this.hideUnlessEditing(), 3000);
+  }
+  hideUnlessEditing() {
+    if (!this.editingColor) this.hide();
   }
   hide() {
+    this.editingColor = false;
     this.clock.clearTimeout(this.timer);
     this.visible = false;
     this.frame.classList.remove('controls-visible');

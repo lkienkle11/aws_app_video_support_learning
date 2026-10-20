@@ -92,3 +92,11 @@ Xem [hướng dẫn đóng gói](PACKAGING.md) để tạo gói còn thiếu. Y�
 - Trong ⚙ của trình phát, bật/tắt **Tự phát bài tiếp**. Lựa chọn được lưu vào SQLite theo thư viện.
 - Nếu bật và còn bài tiếp, khi video kết thúc sẽ đếm ngược **3 giây**. **Chuyển ngay** bỏ qua thời gian chờ; **Hủy** dừng tự chuyển và hiện **Phát lại**. Khi tắt tự chuyển hoặc ở bài cuối, màn hình kết thúc có **Phát lại**; nếu còn bài tiếp vẫn có **Chuyển ngay**.
 - Đổi bài hoặc rời trình phát sẽ hủy bộ đếm cũ. Mất điện/force quit có thể làm mất phần kể từ lần tự lưu gần nhất.
+
+## Màu và độ đậm phụ đề
+
+Trong ⚙ của khung video, **Nền phụ đề** có bộ chọn màu nền và thanh **Độ đậm nền** 0–100%; **Chữ phụ đề** có màu chữ và **Độ đậm chữ** riêng. Chọn màu hoặc kéo thanh để xem ngay kết quả; thả thanh/chốt màu để lưu vào SQLite của thư viện. 0% là trong suốt, 100% là hoàn toàn đậm. Mặc định cho thư viện mới: nền đen 100%, chữ trắng 100%.
+
+Màu/opacity, cỡ và vị trí phụ đề được giữ khi đổi bài hoặc khởi động lại. Cài đặt bản cũ vẫn được đọc: nền “Tối” giữ alpha 80%, “Trong suốt” giữ 0%, màu trắng/vàng và cỡ/vị trí không bị mất.
+
+Danh sách “Nội dung khóa học” tự đưa dòng đang mở vào vùng nhìn thấy dưới tiêu đề cố định. Việc này chỉ cuộn khung danh sách, không kéo cả trang khỏi video; bố cục hẹp cũng giữ lựa chọn trong vùng cuộn của danh sách.

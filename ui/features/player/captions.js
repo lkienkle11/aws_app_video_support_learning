@@ -1,13 +1,14 @@
 import { $ } from '../../shared/utils.js';
 import { invoke } from '../../shared/api.js';
 import { captionGeometry, clamp } from './caption-layout.js';
+import { captionColors, defaultCaptionSettings } from './caption-style.js';
 
 export class Captions {
   constructor(notify) {
     this.notify = notify;
     this.frame = $('player');
     this.box = $('caption-overlay');
-    this.settings = { size: 24, x: 0.5, y: 0, color: 'white', background: 'rgba(0,0,0,.8)' };
+    this.settings = { ...defaultCaptionSettings };
     this.controlsVisible = false;
     this.loaded = false;
     this.resize = new ResizeObserver(() => this.layout());
@@ -17,12 +18,19 @@ export class Captions {
       ['caption-size', 'size', Number],
       ['caption-color', 'color', String],
       ['caption-background', 'background', String],
-    ])
-      $(id).onchange = (event) => {
+      ['caption-opacity', 'opacity', (value) => Number(value) / 100],
+      ['caption-background-opacity', 'background_opacity', (value) => Number(value) / 100],
+    ]) {
+      const update = (event) => {
         this.settings[key] = parse(event.target.value);
         this.apply();
+      };
+      $(id).oninput = update;
+      $(id).onchange = (event) => {
+        update(event);
         this.save();
       };
+    }
     $('caption-reset').onclick = () => {
       this.settings.x = 0.5;
       this.settings.y = 0;
@@ -56,6 +64,7 @@ export class Captions {
     this.box.onpointercancel = finish;
   }
   async load() {
+    if (this.pendingSave) await this.pendingSave;
     this.settings = await invoke('load_caption_settings');
     this.loaded = true;
     this.apply();
@@ -63,18 +72,31 @@ export class Captions {
   async save() {
     if (!this.loaded) return;
     try {
-      await invoke('save_caption_settings', { settings: { ...this.settings } });
+      const settings = { ...this.settings };
+      this.pendingSave = (this.pendingSave || Promise.resolve())
+        .then(() => invoke('save_caption_settings', { settings }))
+        .catch((error) => {
+          this.notify('Không lưu được cài đặt phụ đề: ' + error);
+        });
+      await this.pendingSave;
     } catch (error) {
-      this.notify('Không lưu được vị trí phụ đề: ' + error);
+      this.notify('Không lưu được cài đặt phụ đề: ' + error);
     }
   }
   apply() {
     this.box.style.fontSize = `${this.settings.size}px`;
-    this.box.style.color = this.settings.color;
-    this.box.style.background = this.settings.background;
+    Object.assign(this.box.style, captionColors(this.settings));
     $('caption-size').value = this.settings.size;
     $('caption-color').value = this.settings.color;
     $('caption-background').value = this.settings.background;
+    for (const [id, key] of [
+      ['caption-opacity', 'opacity'],
+      ['caption-background-opacity', 'background_opacity'],
+    ]) {
+      const percent = Math.round(this.settings[key] * 100);
+      $(id).value = percent;
+      $(`${id}-value`).textContent = `${percent}%`;
+    }
     this.layout();
   }
   render(track) {

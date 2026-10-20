@@ -148,7 +148,9 @@ input[type='range'] {
   backdrop-filter: blur(15px);
   border-radius: 8px;
   padding: 14px;
+  width: 300px;
   min-width: 250px;
+  max-width: calc(100% - 24px);
   max-height: calc(100% - 75px);
   overflow-y: auto;
   z-index: 5;
@@ -286,7 +288,7 @@ input[type='range'] {
   border-radius: 9px;
   background: white;
   align-self: start;
-  max-height: 750px;
+  max-height: min(750px, calc(100vh - var(--playlist-top, 200px) - 16px));
   overflow-y: auto;
 }
 .playlist-heading {
@@ -493,4 +495,48 @@ dialog form > div {
 }
 #end-next {
   background: #40734c;
+}
+
+.caption-style {
+  min-inline-size: 0;
+  border: 1px solid #ffffff30;
+  border-radius: 6px;
+  padding: 8px;
+  margin: 10px 0;
+  min-width: 0;
+}
+.caption-style legend {
+  color: #c7dacd;
+  font-size: 12px;
+  padding: 0 4px;
+}
+.player-settings .caption-style label:last-child {
+  margin-bottom: 0;
+}
+.player-settings input[type='color'] {
+  width: 115px;
+  height: 28px;
+  padding: 2px;
+  border: 1px solid #779587;
+  border-radius: 4px;
+  background: #314b3e;
+  cursor: pointer;
+}
+.caption-opacity-control {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  width: 115px;
+  flex-shrink: 0;
+}
+.caption-opacity-control input {
+  width: 0;
+  min-width: 0;
+  flex: 1;
+}
+.caption-opacity-control output {
+  width: 33px;
+  text-align: right;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
 }

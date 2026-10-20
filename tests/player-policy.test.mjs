@@ -69,3 +69,25 @@ test('subtitle default leaves 10px above the control bar and 10px above frame wh
   assert.equal(dragged.left, 187);
   assert.equal(dragged.bottom, 132);
 });
+
+test('native color chooser stays usable past idle timeout and leaving the video frame', () => {
+  const { frame, panel, policy, tick } = fixture();
+  frame.dispatchEvent(new Event('pointerenter'));
+  const event = (type, target) => {
+    const e = new Event(type);
+    Object.defineProperty(e, 'target', { value: target });
+    frame.dispatchEvent(e);
+  };
+  event('focusin', { type: 'color' });
+  panel.hidden = false;
+  frame.dispatchEvent(new Event('pointerleave'));
+  tick(6000);
+  assert.equal(policy.visible, true);
+  assert.equal(panel.hidden, false);
+  event('change', { type: 'color' });
+  assert.equal(policy.visible, false);
+  assert.equal(panel.hidden, true);
+  event('focusin', { type: 'color' });
+  event('focusout', { type: 'color' });
+  assert.equal(policy.visible, false);
+});

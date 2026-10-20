@@ -37,11 +37,16 @@ jobs:
         run: node scripts/quality/check-size.mjs "target/release/bundle/macos/Cloud Study.app"
       - name: Linux package size gate
         if: runner.os == 'Linux'
-        run: node scripts/quality/check-size.mjs target/release/bundle/deb/*.deb
+        run: |
+          node scripts/quality/check-size.mjs target/release/cloud-study target/release/cloud-study-core
+          node scripts/quality/check-size.mjs target/release/bundle/deb/*.deb
       - name: Windows installer size gate
         if: runner.os == 'Windows'
         shell: pwsh
-        run: Get-ChildItem target/release/bundle/nsis/*.exe | ForEach-Object { node scripts/quality/check-size.mjs $_.FullName; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE } }
+        run: |
+          node scripts/quality/check-size.mjs target/release/cloud-study.exe target/release/cloud-study-core.exe
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          Get-ChildItem target/release/bundle/nsis/*.exe | ForEach-Object { node scripts/quality/check-size.mjs $_.FullName; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE } }
       - uses: actions/upload-artifact@v4
         with:
           name: cloud-study-${{ matrix.os }}

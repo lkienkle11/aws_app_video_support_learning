@@ -1,6 +1,7 @@
 import { $, time, escapeHTML as h, localized } from '../../shared/utils.js';
 import { invoke, asset, chooseDirectory, chooseSubtitle } from '../../shared/api.js';
 import { Player } from '../player/player.js';
+import { revealActiveLesson } from './playlist-scroll.js';
 
 const state = {
   all: [],
@@ -180,10 +181,18 @@ function playlist() {
   $('playlist')
     .querySelectorAll('button')
     .forEach((b) => (b.onclick = () => watch(state.all.find((l) => l.id === b.dataset.id))));
-  const active = $('playlist').querySelector('.active');
-  if (active)
-    $('playlist').scrollTop = Math.max(0, active.offsetTop - $('playlist').offsetTop - 70);
+  schedulePlaylistReveal();
 }
+let playlistFrame;
+function schedulePlaylistReveal() {
+  cancelAnimationFrame(playlistFrame);
+  playlistFrame = requestAnimationFrame(() => revealActiveLesson($('playlist')));
+}
+window.addEventListener('resize', schedulePlaylistReveal);
+const playlistResize = new ResizeObserver(schedulePlaylistReveal);
+playlistResize.observe($('playlist').closest('.playlist'));
+playlistResize.observe(document.querySelector('.playlist-heading'));
+
 async function watch(lesson, play = true) {
   if (!lesson) return;
   if (state.selected) state.selected.notes = $('notes').value;

@@ -217,19 +217,50 @@
                       <option value="48">48 px</option>
                       <option value="64">64 px</option>
                     </select></label
-                  ><label
-                    >Nền phụ đề
-                    <select id="caption-background">
-                      <option value="rgba(0,0,0,.8)">Tối</option>
-                      <option value="transparent">Trong suốt</option>
-                    </select></label
-                  ><label
-                    >Màu phụ đề
-                    <select id="caption-color">
-                      <option value="white">Trắng</option>
-                      <option value="#ffe56a">Vàng</option>
-                    </select></label
-                  ><label
+                  >
+                  <fieldset class="caption-style">
+                    <legend>Nền phụ đề</legend>
+                    <label
+                      >Màu nền <input id="caption-background" type="color" value="#000000"
+                    /></label>
+                    <label
+                      >Độ đậm nền
+                      <span class="caption-opacity-control"
+                        ><input
+                          id="caption-background-opacity"
+                          type="range"
+                          min="0"
+                          max="100"
+                          step="1"
+                          value="100"
+                        /><output
+                          id="caption-background-opacity-value"
+                          for="caption-background-opacity"
+                          >100%</output
+                        ></span
+                      ></label
+                    >
+                  </fieldset>
+                  <fieldset class="caption-style">
+                    <legend>Chữ phụ đề</legend>
+                    <label>Màu chữ <input id="caption-color" type="color" value="#ffffff" /></label>
+                    <label
+                      >Độ đậm chữ
+                      <span class="caption-opacity-control"
+                        ><input
+                          id="caption-opacity"
+                          type="range"
+                          min="0"
+                          max="100"
+                          step="1"
+                          value="100"
+                        /><output id="caption-opacity-value" for="caption-opacity"
+                          >100%</output
+                        ></span
+                      ></label
+                    >
+                  </fieldset>
+                  <label
                     >Lệch phụ đề (giây)<input
                       id="caption-offset"
                       type="number"

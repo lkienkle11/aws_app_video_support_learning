@@ -9,6 +9,8 @@ pub struct CaptionSettings {
     pub y: f64,
     pub color: String,
     pub background: String,
+    pub opacity: f64,
+    pub background_opacity: f64,
 }
 impl Default for CaptionSettings {
     fn default() -> Self {
@@ -16,8 +18,10 @@ impl Default for CaptionSettings {
             size: 24.0,
             x: 0.5,
             y: 0.0,
-            color: "white".into(),
-            background: "rgba(0,0,0,.8)".into(),
+            color: "#ffffff".into(),
+            background: "#000000".into(),
+            opacity: 1.0,
+            background_opacity: 1.0,
         }
     }
 }

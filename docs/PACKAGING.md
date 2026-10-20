@@ -45,6 +45,8 @@ Cài Visual Studio Build Tools với workload **Desktop development with C++**, 
 ```powershell
 npm ci --cache ./tools/npm-cache
 npm run build -- --bundles nsis
+node scripts/quality/check-size.mjs target/release/cloud-study.exe target/release/cloud-study-core.exe
+if ($LASTEXITCODE -ne 0) { throw 'Installed application exceeds size limit' }
 Get-ChildItem target/release/bundle/nsis/*.exe | ForEach-Object {
     node scripts/quality/check-size.mjs $_.FullName
     if ($LASTEXITCODE -ne 0) { throw 'Installer exceeds size limit' }
@@ -69,6 +71,7 @@ sudo apt install build-essential curl wget file pkg-config libwebkit2gtk-4.1-dev
 sh scripts/development/bootstrap.sh
 . scripts/development/env.sh
 npm run build -- --bundles deb
+node scripts/quality/check-size.mjs target/release/cloud-study target/release/cloud-study-core
 node scripts/quality/check-size.mjs target/release/bundle/deb/*.deb
 ```
 
@@ -114,3 +117,9 @@ Hiện chỉ gói macOS ARM64 đã được build/chạy GUI ở phiên bản m�
 ## Dependency fix cho macOS
 
 Cargo.toml tạm pin Wry vào revision của [PR #1856](https://github.com/tauri-apps/wry/pull/1856) để xử lý race phản hồi WebKit. Cargo.lock khóa chính xác commit; lần bootstrap/build đầu cần mạng để tải Git dependency này. Dùng `--locked`; không bỏ patch riêng trên một hệ điều hành rồi phát hành bản không khớp lockfile. Khi release Wry chính thức chứa fix, cập nhật dependency và kiểm lại phát lại/chuyển bài/đóng cửa sổ trên macOS.
+
+## Kiểm tra thay đổi phụ đề/danh sách trên máy đích
+
+Build native trên chính Windows hoặc Linux theo các lệnh trên; phiên sửa này chỉ build/chạy macOS, không cross-build EXE/Linux trên macOS. Không có dependency/runtime mới cho tính năng này. `input type=color`, range, ResizeObserver và màu RGBA chạy trong WebView hệ thống.
+
+Sau build, mở bài ở giữa/cuối khóa học: dòng được tô sáng phải thấy được dưới tiêu đề cố định trong “Nội dung khóa học”, trong khi trang vẫn giữ khung video ở đầu. Trong cài đặt video, chọn màu nền/chữ khác nhau và opacity khác nhau, đổi bài rồi đóng/mở app để kiểm các giá trị vẫn giữ. Thử 0%/100%, cửa sổ rộng/hẹp, và dữ liệu SQLite của bản cũ. Gate kích thước phía trên đo cả cặp executable GUI/core trước khi kiểm installer.

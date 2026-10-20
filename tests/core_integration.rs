@@ -33,7 +33,7 @@ fn library_paths_subtitles_and_edits_are_validated() {
         .dispatch("load_caption_settings", json!({}))
         .unwrap();
     assert_eq!(defaults["x"], 0.5);
-    let settings = json!({"size":32.0,"x":0.3,"y":0.7,"color":"white","background":"transparent"});
+    let settings = json!({"size":32.0,"x":0.3,"y":0.7,"color":"#ffffff","background":"#000000","opacity":0.65,"background_opacity":0.0});
     service
         .dispatch("save_caption_settings", json!({"settings":settings}))
         .unwrap();
@@ -139,4 +139,100 @@ fn progress_notes_and_autoplay_survive_service_restart_and_rescan() {
     assert_eq!(lessons[0]["position"], 0.0);
     assert_eq!(lessons[0]["completed"], true);
     assert_eq!(lessons[0]["notes"], "Ghi chú");
+}
+
+#[test]
+fn caption_colors_and_independent_opacities_survive_restart() {
+    let temp = tempfile::tempdir().unwrap();
+    let root = temp.path();
+    fs::write(root.join("001-Test.mp4"), []).unwrap();
+    let mut service = Service::default();
+    service
+        .dispatch("open_library", json!({"path":root}))
+        .unwrap();
+    let defaults = service
+        .dispatch("load_caption_settings", json!({}))
+        .unwrap();
+    assert_eq!(defaults["color"], "#ffffff");
+    assert_eq!(defaults["background"], "#000000");
+    assert_eq!(defaults["opacity"], 1.0);
+    assert_eq!(defaults["background_opacity"], 1.0);
+    let settings = json!({"size":32.0,"x":0.3,"y":0.7,"color":"#12abef","background":"#743ac9","opacity":0.62,"background_opacity":0.35});
+    service
+        .dispatch("save_caption_settings", json!({"settings":settings}))
+        .unwrap();
+    drop(service);
+    let mut reopened = Service::default();
+    reopened
+        .dispatch("open_library", json!({"path":root}))
+        .unwrap();
+    assert_eq!(
+        reopened
+            .dispatch("load_caption_settings", json!({}))
+            .unwrap(),
+        settings
+    );
+    for (key, value) in [
+        ("opacity", json!(-0.01)),
+        ("opacity", json!(1.01)),
+        ("background_opacity", json!(-1)),
+        ("background_opacity", json!(2)),
+        ("color", json!("red; background:url(x)")),
+        ("color", json!("#fff")),
+        ("background", json!("#gg0000")),
+        ("background", json!("url(x)")),
+    ] {
+        let mut invalid = settings.clone();
+        invalid[key] = value;
+        assert!(reopened
+            .dispatch("save_caption_settings", json!({"settings":invalid}))
+            .is_err());
+    }
+    assert_eq!(
+        reopened
+            .dispatch("load_caption_settings", json!({}))
+            .unwrap(),
+        settings
+    );
+    let db = rusqlite::Connection::open(root.join("cloud-study.sqlite")).unwrap();
+    for (old_color, old_background, alpha) in [
+        ("white", "rgba(0,0,0,.8)", 0.8),
+        ("#ffe56a", "transparent", 0.0),
+    ] {
+        let legacy =
+            json!({"size":40,"x":0.25,"y":0.6,"color":old_color,"background":old_background});
+        db.execute(
+            "UPDATE preferences SET value=?1 WHERE key='captions'",
+            [legacy.to_string()],
+        )
+        .unwrap();
+        let loaded = reopened
+            .dispatch("load_caption_settings", json!({}))
+            .unwrap();
+        assert_eq!(
+            loaded["color"],
+            if old_color == "white" {
+                "#ffffff"
+            } else {
+                old_color
+            }
+        );
+        assert_eq!(loaded["background"], "#000000");
+        assert_eq!(loaded["background_opacity"], alpha);
+        assert_eq!(loaded["opacity"], 1.0);
+        assert_eq!(loaded["size"], 40.0);
+        assert_eq!(loaded["x"], 0.25);
+        assert_eq!(loaded["y"], 0.6);
+        let stored: String = db
+            .query_row(
+                "SELECT value FROM preferences WHERE key='captions'",
+                [],
+                |row| row.get(0),
+            )
+            .unwrap();
+        assert_eq!(
+            serde_json::from_str::<serde_json::Value>(&stored).unwrap(),
+            legacy
+        );
+    }
 }
