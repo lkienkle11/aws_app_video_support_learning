@@ -128,6 +128,7 @@ async function search() {
     const lessons = await invoke('search_lessons', {
       query: $('search').value,
       language: $('search-language').value,
+      field: $('search-field').value,
     });
     if (generation !== state.queryGeneration) return;
     state.results = lessons;
@@ -321,6 +322,7 @@ $('search').oninput = () => {
   searchTimer = setTimeout(search, 180);
 };
 $('search-language').onchange = search;
+$('search-field').onchange = search;
 $('chapter-filter').onchange = () => {
   state.limit = 24;
   render();

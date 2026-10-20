@@ -47,7 +47,7 @@ pub fn synchronize(db: &mut Connection, lessons: &[Lesson]) -> Result<()> {
     }
     tx.commit().map_err(|e| e.to_string())
 }
-pub fn search(db: &Connection, query: &str, language: &str) -> Result<Vec<Lesson>> {
+pub fn search(db: &Connection, query: &str, language: &str, field: &str) -> Result<Vec<Lesson>> {
     // Quoted tokens prevent FTS operators, malformed quotes and SQL injection.
     let folded = fold(query);
     let tokens: Vec<_> = folded
@@ -55,7 +55,18 @@ pub fn search(db: &Connection, query: &str, language: &str) -> Result<Vec<Lesson
         .filter(|s| !s.is_empty())
         .map(|s| format!("\"{s}\"*"))
         .collect();
-    let fts = tokens.join(" AND ");
+    let terms = tokens.join(" AND ");
+    let column = match field {
+        "all" => "",
+        "title" => "title",
+        "description" => "description",
+        _ => return Err("Invalid search field".into()),
+    };
+    let fts = if terms.is_empty() || column.is_empty() {
+        terms
+    } else {
+        format!("{column} : ({terms})")
+    };
     let mut stmt = db.prepare("SELECT l.data,coalesce(p.position,0),coalesce(p.duration,0),coalesce(p.completed,0),coalesce(p.notes,'') FROM lessons l LEFT JOIN progress p ON p.id=l.id WHERE (?1='' OR l.id IN (SELECT id FROM search WHERE search MATCH ?1 AND (?2='' OR language=?2))) ORDER BY l.id").map_err(|e| e.to_string())?;
     let mut rows = stmt
         .query(params![fts, language])
@@ -128,13 +139,15 @@ mod tests {
             notes: String::new(),
         };
         synchronize(&mut db, std::slice::from_ref(&lesson)).unwrap();
-        assert_eq!(search(&db, "bao mat", "vi").unwrap().len(), 1);
-        assert!(search(&db, "permissions", "vi").unwrap().is_empty());
-        assert_eq!(search(&db, "permissions", "en").unwrap().len(), 1);
-        assert!(search(&db, "\" OR drop-table", "en").unwrap().is_empty());
+        assert_eq!(search(&db, "bao mat", "vi", "all").unwrap().len(), 1);
+        assert!(search(&db, "permissions", "vi", "all").unwrap().is_empty());
+        assert_eq!(search(&db, "permissions", "en", "all").unwrap().len(), 1);
+        assert!(search(&db, "\" OR drop-table", "en", "all")
+            .unwrap()
+            .is_empty());
         save_progress(&db, "001.mp4", 32.0, 120.0, true, "Remember IAM").unwrap();
         synchronize(&mut db, &[lesson]).unwrap();
-        let result = search(&db, "", "").unwrap();
+        let result = search(&db, "", "", "all").unwrap();
         assert_eq!(result[0].position, 32.0);
         assert!(result[0].completed);
         assert_eq!(result[0].notes, "Remember IAM");

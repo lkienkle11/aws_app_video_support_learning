@@ -115,3 +115,14 @@ Bộ chọn **Ngôn ngữ ứng dụng / Application language** ở thanh đầu
 Ngôn ngữ giao diện độc lập với bộ chọn **Ngôn ngữ tiêu đề**, **Ngôn ngữ tìm kiếm** và ngôn ngữ phụ đề. Tiêu đề, mô tả, tên chương, ghi chú và nội dung phụ đề là dữ liệu khóa học; không tự dịch khi đổi ngôn ngữ giao diện. Menu/hộp thoại tiêu chuẩn của hệ điều hành vẫn theo ngôn ngữ của hệ điều hành.
 
 Để thêm ngôn ngữ giao diện, bổ sung locale vào `ui/shared/i18n.js` và bản dịch trong `ui/shared/locales/messages.js`, rồi thêm lựa chọn trong `ui/index.html`. `npm test` kiểm tra đủ bản dịch và cùng tham số giữa các locale.
+
+
+## Phạm vi tìm kiếm
+
+Bộ lọc **Tìm trong: Tất cả / Chỉ tiêu đề / Chỉ mô tả** giới hạn nơi tìm từ khóa. **Tất cả** tìm trong cả tiêu đề và mô tả; kết hợp được với ngôn ngữ tìm kiếm và lọc chương. Không nhập từ khóa sẽ hiển thị mọi bài phù hợp các bộ lọc còn lại. Tìm kiếm vẫn hỗ trợ tiếng Việt không dấu và tiền tố từ.
+
+## Âm lượng và tăng âm
+
+Thanh loa điều chỉnh 0–100% âm lượng video. Trong ⚙ của trình phát, **Tăng âm / Audio boost** cho phép chọn 100%, 150% hoặc 200% để nghe rõ nguồn nhỏ. Mặc định 100%; chỉ tạo xử lý Web Audio khi chủ động chọn tăng âm. Có compressor để hạn chế đỉnh âm; không chỉnh sửa/chuyển mã MP4 hoặc tạo bản audio mới. Độ lớn cảm nhận còn phụ thuộc nguồn thu, loa và âm lượng hệ điều hành.
+
+Tăng âm giữ trong phiên cửa sổ, kể cả đổi bài; mở lại app về 100%. Bấm loa sau khi kéo về 0 khôi phục mức nghe trước đó; kéo loa lên hoặc phím ↑ cũng mở tiếng. Nếu WebView không hỗ trợ hoặc chưa cho chạy audio, app thông báo; đường native mặc định không bị đổi trước khi bật được xử lý.

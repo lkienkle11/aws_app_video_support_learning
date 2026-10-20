@@ -1,4 +1,23 @@
 export const messages = {
+  'Phạm vi tìm kiếm': { vi: 'Phạm vi tìm kiếm', en: 'Search fields' },
+  'Tìm trong: Tất cả': { vi: 'Tìm trong: Tất cả', en: 'Search: All fields' },
+  'Chỉ tiêu đề': { vi: 'Chỉ tiêu đề', en: 'Title only' },
+  'Chỉ mô tả': { vi: 'Chỉ mô tả', en: 'Description only' },
+  'Tăng âm': { vi: 'Tăng âm', en: 'Audio boost' },
+  'Không bật được tăng âm: {error}': {
+    vi: 'Không bật được tăng âm: {error}',
+    en: 'Could not enable audio boost: {error}',
+  },
+  'Audio boost is unavailable in this WebView': {
+    vi: 'WebView này chưa hỗ trợ tăng âm',
+    en: 'Audio boost is unavailable in this WebView',
+  },
+  'Audio playback needs a user gesture': {
+    vi: 'Bấm phát video hoặc chọn tăng âm lại để bật âm thanh',
+    en: 'Press Play or choose audio boost again to enable sound',
+  },
+  'Invalid search field': { vi: 'Phạm vi tìm kiếm không hợp lệ', en: 'Invalid search field' },
+
   'Thư viện khóa học': {
     vi: 'Thư viện khóa học',
     en: 'Course library',

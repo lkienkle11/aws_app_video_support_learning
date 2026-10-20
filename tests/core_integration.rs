@@ -244,3 +244,100 @@ fn caption_colors_and_independent_opacities_survive_restart() {
         );
     }
 }
+
+#[test]
+fn search_filters_title_description_and_language() {
+    let temp = tempfile::tempdir().unwrap();
+    for (number, title, description) in [
+        (1, "Security IAM", "Storage"),
+        (2, "Compute", "Security IAM"),
+    ] {
+        let stem = format!("{number:03}-Test");
+        fs::write(temp.path().join(format!("{stem}.mp4")), []).unwrap();
+        let vi_title = if number == 1 {
+            "Bảo mật IAM"
+        } else {
+            "Máy chủ"
+        };
+        let vi_description = if number == 1 {
+            "Lưu trữ"
+        } else {
+            "Bảo mật IAM"
+        };
+        fs::write(temp.path().join(format!("{stem}.lesson.json")), json!({"texts":{"en":{"title":title,"description":description},"vi":{"title":vi_title,"description":vi_description}}}).to_string()).unwrap();
+    }
+    let mut service = Service::default();
+    service
+        .dispatch("open_library", json!({"path":temp.path()}))
+        .unwrap();
+    for (language, query) in [("en", "security"), ("vi", "bao mat"), ("", "IAM")] {
+        for (field, numbers) in [
+            ("all", vec![1, 2]),
+            ("title", vec![1]),
+            ("description", vec![2]),
+        ] {
+            let result = service
+                .dispatch(
+                    "search_lessons",
+                    json!({"query":query,"language":language,"field":field}),
+                )
+                .unwrap();
+            let actual: Vec<_> = result
+                .as_array()
+                .unwrap()
+                .iter()
+                .map(|lesson| lesson["number"].as_u64().unwrap())
+                .collect();
+            assert_eq!(actual, numbers, "{language}/{field}");
+        }
+    }
+    assert_eq!(
+        service
+            .dispatch("search_lessons", json!({"query":"IAM","language":""}))
+            .unwrap()
+            .as_array()
+            .unwrap()
+            .len(),
+        2
+    );
+    for field in ["all", "title", "description"] {
+        assert_eq!(
+            service
+                .dispatch(
+                    "search_lessons",
+                    json!({"query":"","language":"","field":field})
+                )
+                .unwrap()
+                .as_array()
+                .unwrap()
+                .len(),
+            2
+        );
+        assert!(service
+            .dispatch(
+                "search_lessons",
+                json!({"query":"security","language":"vi","field":field})
+            )
+            .unwrap()
+            .as_array()
+            .unwrap()
+            .is_empty());
+        assert!(service
+            .dispatch(
+                "search_lessons",
+                json!({"query":"\" OR * title: compute","language":"en","field":field})
+            )
+            .unwrap()
+            .as_array()
+            .unwrap()
+            .is_empty());
+    }
+    for invalid in [json!("title OR description"), json!(null), json!(17)] {
+        assert!(service
+            .dispatch(
+                "search_lessons",
+                json!({"query":"","language":"","field":invalid})
+            )
+            .is_err());
+    }
+}

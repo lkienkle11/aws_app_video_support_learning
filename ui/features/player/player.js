@@ -1,6 +1,7 @@
 import { t, localizeError, onLocaleChange } from '../../shared/i18n.js';
 import { $, time, spritePosition, escapeHTML } from '../../shared/utils.js';
 import { invoke, asset } from '../../shared/api.js';
+import { AudioOutput } from './audio-output.js';
 import { Captions } from './captions.js';
 import { EndScreen } from './end-screen.js';
 import { resumePosition } from './playback-policy.js';
@@ -9,6 +10,7 @@ import { ControlsVisibility } from './controls-visibility.js';
 export class Player {
   constructor({ notify, onProgress, onNavigate, getNextTitle = () => null }) {
     this.video = $('video');
+    this.audio = new AudioOutput(this.video);
     this.notify = notify;
     this.onProgress = onProgress;
     this.onNavigate = (delta) => {
@@ -40,6 +42,7 @@ export class Player {
     v.onplay = () => {
       if (v.paused || v.ended) return;
       this.endScreen.hide();
+      this.audio.resume().catch((error) => this.notify(localizeError(error)));
       $('player').classList.add('playing');
       $('play').textContent = 'Ⅱ';
     };
@@ -94,13 +97,25 @@ export class Player {
       $('seek-preview').hidden = true;
     };
     $('volume').oninput = (e) => {
-      v.volume = Number(e.target.value);
-      v.muted = v.volume === 0;
+      this.audio.setVolume(Number(e.target.value));
       this.volumeUI();
     };
     $('mute').onclick = () => {
-      v.muted = !v.muted;
+      this.audio.toggleMute();
       this.volumeUI();
+    };
+    v.onvolumechange = () => {
+      this.audio.syncNativeVolume();
+      this.volumeUI();
+    };
+    $('audio-boost').onchange = async (event) => {
+      try {
+        await this.audio.setBoost(Number(event.target.value));
+      } catch (error) {
+        this.notify(t('Không bật được tăng âm: {error}', { error: localizeError(error) }));
+      } finally {
+        event.target.value = this.audio.boost;
+      }
     };
     $('speed').onchange = (e) => {
       v.playbackRate = Number(e.target.value);
@@ -183,7 +198,7 @@ export class Player {
       if (key === 'arrowleft' || key === 'j') this.seekBy(key === 'j' ? -10 : -5);
       if (key === 'arrowright' || key === 'l') this.seekBy(key === 'l' ? 10 : 5);
       if (key === 'arrowup' || key === 'arrowdown') {
-        v.volume = Math.min(1, Math.max(0, v.volume + (key === 'arrowup' ? 0.05 : -0.05)));
+        this.audio.setVolume(this.audio.volume + (key === 'arrowup' ? 0.05 : -0.05));
         this.volumeUI();
       }
       if (key === 'f') this.fullscreen();
@@ -226,8 +241,8 @@ export class Player {
     this.visibility.reveal();
   }
   volumeUI() {
-    $('volume').value = this.video.muted ? 0 : this.video.volume;
-    $('mute').textContent = this.video.muted ? '⊘' : '♫';
+    $('volume').value = this.audio.muted ? 0 : this.audio.volume;
+    $('mute').textContent = this.audio.muted ? '⊘' : '♫';
   }
   replay() {
     this.endScreen.hide();

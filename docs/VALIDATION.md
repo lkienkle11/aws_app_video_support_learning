@@ -115,3 +115,15 @@ Sau patch, Clippy `--all-targets --locked` và 4 Rust tests qua; native đã đ�
 - Native kiểm ở 1320 px và 320 px: hộp phụ đề Việt/Anh vừa cửa sổ, nền giới hạn theo video; nội dung dài trong nền thấp cuộn được. Trả cửa sổ và ngôn ngữ tiếng Việt sau QA.
 - Gói macOS trong dist: 5.062.208 byte (<20 MB), đã build lại từ nguồn sửa. Backend peak sampled RSS 10.240.000 byte trên workload 277 bài, tìm kiếm song ngữ và đọc mọi phụ đề; đo cục bộ, không bảo đảm trần RAM cho mọi workload.
 - Hash logical progress/notes/preferences của hai SQLite thật trước/sau QA không thay đổi. Chỉ build/chạy macOS; Windows/Linux cần build native trên máy đích.
+
+
+## Bộ lọc tìm kiếm và âm lượng — 2026-10-20
+
+- Search thêm phạm vi all/title/description tại UI và SQLite FTS5, kết hợp ngôn ngữ và chương. Chỉ cho phép tên cột nằm trong allowlist; token vẫn được quote; request cũ không có field dùng all, field không hợp lệ bị từ chối. Không đổi schema/database hoặc dữ liệu khóa học.
+- Native macOS, thư viện thử riêng: từ khóa security trả 2 bài với All fields, chỉ bài 1 với Title only và chỉ bài 2 với Description only. Kiểm bố cục ở 320/650/1320 px: search đầy hàng và các select xuống hai cột trên cửa sổ hẹp.
+- Đo 60 giây đầu video 001: mean -23,2 dB/max -2,6 dB; bài 117: mean -23,8 dB/max -3,5 dB bằng ffmpeg volumedetect. Đây là hai mẫu nguồn, không phải phép đo loa/âm lượng hệ điều hành hoặc toàn bộ khóa học. App trước chỉ hỗ trợ volume 0–100%.
+- Thêm Audio boost 100/150/200% trong menu trình phát, khởi tạo Web Audio khi người dùng yêu cầu. Gain → compressor → output volume; không nạp/chuyển mã toàn bộ audio/video, không thêm dependency runtime. Native volume giữ unity khi đã tạo graph để không áp dụng âm lượng hai lần; thanh loa/mute được áp dụng ở output gain, đồng bộ khi native volume thay đổi. Tắt/mở loa sau mức 0 khôi phục mức nghe trước đó; phím ↑/slider mở tiếng khi tăng âm lượng.
+- 31 Node tests và 6 Rust tests qua. Kiểm tra cả bộ lọc song ngữ/không dấu, query trống, backward compatibility, từ chối field lạ và ký tự FTS; graph tạo một lần/đổi boost, mute/zero/unmute và chặn activation không làm đổi native playback. fmt, Clippy --all-targets --locked với warnings-as-errors, kiểm cú pháp JavaScript, Prettier và git diff check qua.
+- Native WKWebView test `tests/native/audio-webkit.swift`: chạy module production với AAC, tauri://localhost và asset://localhost riêng, CORS như Tauri. RMS baseline 0,00945; 200% 0,01880 (~1,99 lần); đổi media giữ tín hiệu 0,01890; về 100% 0,00941. Mute và volume 0 đều RMS=0; mở tiếng khôi phục 0,00942. Regression này đo tín hiệu thật sau output gain, không suy ra âm lượng cảm nhận trên loa hoặc runtime Windows/Linux. Xem `tests/native/README.md` để chạy lại.
+- Gói macOS mới được build lại và kiểm dưới 20 MB. Backend peak sampled RSS 9.912.320 byte với 277 bài, tìm kiếm song ngữ và đọc mọi phụ đề; không phải bảo đảm mọi workload/máy.
+- Hash logical tiến độ, ghi chú và preferences của hai SQLite thật không đổi. QA dùng thư viện riêng trong tools/test-library. Chỉ build/chạy macOS; không push trong phiên này theo yêu cầu.

@@ -519,6 +519,7 @@ main {
   padding: 7px 0;
 }
 .filters {
+  flex-wrap: wrap;
   display: flex;
   gap: 9px;
   margin-bottom: 22px;

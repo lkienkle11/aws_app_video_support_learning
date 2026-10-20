@@ -180,6 +180,14 @@
                 data-i18n-aria-label="Tìm bài học"
               /><kbd>⌘ K</kbd></label
             ><select
+              id="search-field"
+              aria-label="Phạm vi tìm kiếm"
+              data-i18n-aria-label="Phạm vi tìm kiếm"
+            >
+              <option value="all" data-i18n="Tìm trong: Tất cả">Tìm trong: Tất cả</option>
+              <option value="title" data-i18n="Chỉ tiêu đề">Chỉ tiêu đề</option>
+              <option value="description" data-i18n="Chỉ mô tả">Chỉ mô tả</option></select
+            ><select
               id="search-language"
               aria-label="Ngôn ngữ tìm kiếm"
               data-i18n-aria-label="Ngôn ngữ tìm kiếm"
@@ -224,7 +232,7 @@
                 aria-label="Trình phát video"
                 data-i18n-aria-label="Trình phát video"
               >
-                <video id="video" preload="metadata" playsinline></video>
+                <video crossorigin="anonymous" id="video" preload="metadata" playsinline></video>
                 <div
                   id="caption-overlay"
                   class="caption-overlay"
@@ -340,6 +348,14 @@
                   </div>
                 </div>
                 <div id="settings" class="player-settings" hidden>
+                  <label
+                    ><span data-i18n="Tăng âm">Tăng âm</span
+                    ><select id="audio-boost">
+                      <option value="1">100%</option>
+                      <option value="1.5">150%</option>
+                      <option value="2">200%</option>
+                    </select></label
+                  >
                   <label
                     ><span data-i18n="Tốc độ">Tốc độ</span
                     ><select id="speed">

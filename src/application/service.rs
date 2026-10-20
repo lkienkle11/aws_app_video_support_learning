@@ -62,6 +62,10 @@ impl Service {
                 &database::open(root)?,
                 string("query")?,
                 string("language")?,
+                match args.get("field") {
+                    None => "all",
+                    Some(value) => value.as_str().ok_or("Invalid search field")?,
+                },
             )?)
             .map_err(|e| e.to_string()),
             "media_path" => {

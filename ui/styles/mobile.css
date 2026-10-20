@@ -81,7 +81,7 @@
   }
   .filters {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   .search-box {
     grid-column: 1 / -1;
@@ -181,9 +181,6 @@
   }
   .filters {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  #display-language {
-    grid-column: 1 / -1;
   }
   .search-box kbd {
     display: none;
