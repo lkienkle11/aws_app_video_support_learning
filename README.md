@@ -1,5 +1,18 @@
 # Cloud Study
 
+## Phạm vi nhánh `aws/clf_c02`
+
+Toàn bộ mã nguồn ứng dụng trong nhánh này, gồm `src/`, `ui/`, scripts, kiểm thử và cấu hình build, **chỉ dành cho nhánh `aws/clf_c02`** và khóa AWS Certified Cloud Practitioner CLF-C02. Phát triển, sửa lỗi và đóng gói ứng dụng này trên `aws/clf_c02`.
+
+Nhánh `main` chỉ chứa `readme.md` để giới thiệu repository và chỉ dẫn tới nhánh mã nguồn; không chứa ứng dụng hoặc cấu hình build. Lịch sử phát triển ứng dụng được giữ ở `aws/clf_c02`, độc lập với lịch sử khởi tạo lại của `main`. Không merge toàn bộ mã nguồn của nhánh này vào `main`.
+
+```sh
+git switch aws/clf_c02
+git pull --ff-only origin aws/clf_c02
+```
+
+Nếu mới clone, dùng `git clone --branch aws/clf_c02 https://github.com/lkienkle11/aws_app_video_support_learning.git`. Dữ liệu `files/`, SQLite và bản build vẫn được Git bỏ qua; cần chép riêng khi chuyển máy.
+
 Ứng dụng **desktop Rust + Tauri 2**, giao diện HTML/CSS/JavaScript cục bộ, dành cho khóa AWS Cloud Practitioner. macOS dùng WKWebView, Windows dùng WebView2, Linux dùng WebKitGTK. Không chạy web server, không cần tài khoản, không tải video lên mạng.
 
 ## Mở ứng dụng

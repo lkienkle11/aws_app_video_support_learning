@@ -1,5 +1,10 @@
 @RTK.md
 
+This application source belongs exclusively to branch `aws/clf_c02` for AWS
+Certified Cloud Practitioner CLF-C02. Make application changes and builds on
+that branch. `main` is a documentation-only branch containing `readme.md`;
+do not merge the application tree into `main`.
+
 Work only inside this repository. Course content, SQLite databases, toolchains,
 build outputs and caches must stay ignored. Never bundle files/ into the app.
 
