@@ -101,6 +101,7 @@ async function loadPreferences() {
   await player.loadSettings();
 }
 
+const playlistButtons = new Map();
 const player = new Player({
   notify,
   getNextTitle: () => {
@@ -113,17 +114,14 @@ const player = new Player({
     if (index >= 0) state.all[index] = lesson;
     const result = state.results.findIndex((l) => l.id === lesson.id);
     if (result >= 0) state.results[result] = lesson;
-    updateStats();
+    if (!$('library-view').hidden) updateStats();
     $('playlist-count').textContent = t('{count} bài · {completed} hoàn thành', {
       count: state.all.length,
       completed: state.all.filter((l) => l.completed).length,
     });
-    for (const button of $('playlist').querySelectorAll('button')) {
-      if (button.dataset.id === lesson.id)
-        button.querySelector('span').textContent = lesson.completed
-          ? '✓'
-          : String(lesson.number).padStart(3, '0');
-    }
+    const marker = playlistButtons.get(lesson.id)?.querySelector('span');
+    const label = lesson.completed ? '✓' : String(lesson.number).padStart(3, '0');
+    if (marker && marker.textContent !== label) marker.textContent = label;
     if (state.selected?.id === lesson.id)
       $('mark-complete').textContent = lesson.completed ? t('✓ Đã hoàn thành') : t('✓ Hoàn thành');
   },
@@ -276,9 +274,13 @@ function playlist() {
         `<button class="playlist-item ${l.id === state.selected?.id ? 'active' : ''}" data-id="${h(l.id)}"><span>${l.completed ? '✓' : String(l.number).padStart(3, '0')}</span><div>${h(localized(l, state.language).title)}<small>${h(l.chapter)} ${l.duration ? '· ' + time(l.duration) : ''}</small></div></button>`,
     )
     .join('');
+  playlistButtons.clear();
   $('playlist')
     .querySelectorAll('button')
-    .forEach((b) => (b.onclick = () => watch(state.all.find((l) => l.id === b.dataset.id))));
+    .forEach((b) => {
+      playlistButtons.set(b.dataset.id, b);
+      b.onclick = () => watch(state.all.find((l) => l.id === b.dataset.id));
+    });
   schedulePlaylistReveal();
 }
 let playlistFrame;

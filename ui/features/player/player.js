@@ -37,6 +37,7 @@ export class Player {
     this.captions = new Captions(notify);
     this.visibility = new ControlsVisibility($('player'), $('settings'), (visible) => {
       this.captions.controlsVisible = visible;
+      if (visible) this.update();
       this.captions.layout();
       if (!visible) $('seek-preview').hidden = true;
     });
@@ -65,7 +66,7 @@ export class Player {
       this.update();
     };
     v.ontimeupdate = () => {
-      this.update();
+      this.update(false);
       if (Date.now() - this.lastSave > 5000) this.save().catch(() => {});
     };
     v.onended = async () => {
@@ -307,6 +308,21 @@ export class Player {
     await this.save();
     await this.flushPreferences();
     this.source = null;
+    await this.releaseMedia();
+  }
+  async releaseMedia() {
+    // Release decoded frames and subtitle blobs while the library is visible.
+    this.video.removeAttribute('src');
+    this.video.querySelectorAll('track').forEach((track) => track.remove());
+    this.video.load();
+    this.urls.forEach(URL.revokeObjectURL);
+    this.urls = [];
+    this.sprite = null;
+    $('preview-frame').style.backgroundImage = '';
+    this.captions.render(null);
+    $('transcript').replaceChildren();
+    this.activeCueElement = null;
+    await this.audio.suspend();
   }
   toggle() {
     if (this.video.ended) return this.replay();
@@ -418,7 +434,9 @@ export class Player {
           if (generation !== this.generation) return;
           this.applyOffset();
           if (index === this.desiredTrackIndex) this.selectTrack(index, false);
-          node.track.oncuechange = () => this.highlightCue();
+          node.track.oncuechange = () => {
+            if (index === this.selectedTrack) this.highlightCue();
+          };
         };
         this.video.append(node);
         node.track.mode = 'hidden';
@@ -446,9 +464,11 @@ export class Player {
     this.transcript();
   }
   transcript() {
+    if ($('transcript-tab').hidden) return;
     const track = this.video.textTracks[this.selectedTrack >= 0 ? this.selectedTrack : 0];
     const cues = [...(track?.cues || [])];
     const query = $('transcript-search').value.toLocaleLowerCase();
+    this.activeCueElement = null;
     $('transcript').innerHTML = cues
       .filter((c) => !query || c.text.toLocaleLowerCase().includes(query))
       .map(
@@ -472,15 +492,19 @@ export class Player {
     );
     if ($('transcript-tab').hidden) return;
     const active = this.video.textTracks[this.selectedTrack]?.activeCues?.[0];
-    $('transcript')
-      .querySelectorAll('.cue.active')
-      .forEach((b) => b.classList.remove('active'));
-    if (active)
-      $('transcript').querySelector(`[data-start="${active.startTime}"]`)?.classList.add('active');
+    const next = active
+      ? $('transcript').querySelector(`[data-start="${active.startTime}"]`)
+      : null;
+    if (next === this.activeCueElement) return;
+    this.activeCueElement?.classList.remove('active');
+    next?.classList.add('active');
+    this.activeCueElement = next;
   }
-  update() {
+  update(force = true) {
+    if (!force && (document.hidden || !this.captions.controlsVisible)) return;
     const v = this.video;
-    $('time').textContent = `${time(v.currentTime)} / ${time(v.duration)}`;
+    const label = `${time(v.currentTime)} / ${time(v.duration)}`;
+    if ($('time').textContent !== label) $('time').textContent = label;
     if (v.duration) $('seek').value = (v.currentTime / v.duration) * 1000;
   }
   async save(ended = false) {

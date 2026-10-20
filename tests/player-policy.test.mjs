@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { ControlsVisibility } from '../ui/features/player/controls-visibility.js';
 import { captionGeometry } from '../ui/features/player/caption-layout.js';
 
-function fixture() {
+function fixture(onChange = () => {}) {
   const frame = new EventTarget();
   const classes = new Set();
   frame.classList = { add: (v) => classes.add(v), remove: (v) => classes.delete(v) };
@@ -26,7 +26,7 @@ function fixture() {
       }
   };
   const panel = { hidden: false };
-  const policy = new ControlsVisibility(frame, panel, () => {}, clock);
+  const policy = new ControlsVisibility(frame, panel, onChange, clock);
   return { frame, panel, policy, tick };
 }
 test('hover reveals controls, movement restarts the full 3 seconds, then hides settings', () => {
@@ -90,4 +90,21 @@ test('native color chooser stays usable past idle timeout and leaving the video 
   event('focusin', { type: 'color' });
   event('focusout', { type: 'color' });
   assert.equal(policy.visible, false);
+});
+
+test('pointer movement renews idle timer without repeating caption layout callbacks', () => {
+  const changes = [];
+  const { frame, policy, tick } = fixture((visible) => changes.push(visible));
+  frame.dispatchEvent(new Event('pointerenter'));
+  for (let i = 0; i < 100; i++) {
+    tick(10);
+    frame.dispatchEvent(new Event('pointermove'));
+  }
+  assert.deepEqual(changes, [true]);
+  tick(2999);
+  assert.equal(policy.visible, true);
+  tick(1);
+  assert.deepEqual(changes, [true, false]);
+  policy.hide();
+  assert.deepEqual(changes, [true, false]);
 });

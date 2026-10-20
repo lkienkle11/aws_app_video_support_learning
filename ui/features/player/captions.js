@@ -124,9 +124,10 @@ export class Captions {
     const text = [...(track?.activeCues || [])]
       .map((c) => c.text.replace(/<[^>]*>/g, ''))
       .join('\n');
+    if (this.box.textContent === text && this.box.hidden === !text) return;
     this.box.textContent = text;
     this.box.hidden = !text;
-    this.layout();
+    if (text) this.layout();
   }
   geometry() {
     return captionGeometry({

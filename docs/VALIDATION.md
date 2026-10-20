@@ -127,3 +127,14 @@ Sau patch, Clippy `--all-targets --locked` và 4 Rust tests qua; native đã đ�
 - Native WKWebView test `tests/native/audio-webkit.swift`: chạy module production với AAC, tauri://localhost và asset://localhost riêng, CORS như Tauri. RMS baseline 0,00945; 200% 0,01880 (~1,99 lần); đổi media giữ tín hiệu 0,01890; về 100% 0,00941. Mute và volume 0 đều RMS=0; mở tiếng khôi phục 0,00942. Regression này đo tín hiệu thật sau output gain, không suy ra âm lượng cảm nhận trên loa hoặc runtime Windows/Linux. Xem `tests/native/README.md` để chạy lại.
 - Gói macOS mới được build lại và kiểm dưới 20 MB. Backend peak sampled RSS 9.912.320 byte với 277 bài, tìm kiếm song ngữ và đọc mọi phụ đề; không phải bảo đảm mọi workload/máy.
 - Hash logical tiến độ, ghi chú và preferences của hai SQLite thật không đổi. QA dùng thư viện riêng trong tools/test-library. Chỉ build/chạy macOS; không push trong phiên này theo yêu cầu.
+
+
+## Giảm công việc thừa khi phát video — 2026-10-20
+
+- Pointer move chỉ gia hạn idle timer 3 giây; callback hiển thị/đặt lại vị trí phụ đề chỉ chạy khi control đổi trạng thái. Regression phát 100 sự kiện move chỉ có một callback hiện và một callback ẩn.
+- Thanh thời gian/seek không cập nhật DOM khi control ẩn hoặc tài liệu ở nền; hiện control cập nhật ngay timestamp hiện tại. Đồng hồ chỉ thay text khi giá trị hiển thị đổi. Việc ghi tiến độ mỗi 5 giây vẫn giữ nguyên.
+- Cuechange của track không được chọn không dựng lại phụ đề. Cue có nội dung trùng không thay text/tính lại bố cục; phụ đề rỗng không đo geometry. Transcript chỉ dựng khi mở tab; highlight chỉ đổi node khi cue đổi.
+- Lưu tiến độ không cập nhật thống kê thư viện đang ẩn hoặc quét mọi nút playlist; map nút được làm mới khi dựng playlist.
+- Về thư viện: chờ ghi tiến độ/settings xong rồi gỡ media src, gọi load để nhả decoder, xóa track/blob URL/sprite/transcript và suspend audio context đã tạo. Phát lại tái dùng audio graph sau resume. Không sửa/chuyển mã hoặc giảm chất lượng MP4.
+- 41 Node tests pass, gồm regression cho giữ timestamp/ghi chú/completion, visibility timer, phụ đề lặp, UI ẩn và thứ tự lưu trước khi giải phóng media. Các kiểm thử đếm công việc thừa không phải phép đo phần trăm CPU giảm hay chứng minh không rò rỉ RAM dài hạn.
+- Build macOS ARM64 thành công: dist/Cloud Study.app 5.095.296 byte. Native mở bài 189 khôi phục 0:43/2:37, phát được video và mở được transcript; quay về thư viện rồi mở lại nguồn video hoạt động. Mẫu ngắn sau khởi động: tổng CPU nhóm app khoảng 8,5–23,2%, RSS 153–219 MB; hai mẫu sau khoảng 8,5–8,6% và 153–183 MB. Đây không phải benchmark A/B đồng nhất hoặc peak dài hạn; không suy ra tỷ lệ giảm so với bản cũ. Core khoảng 8–10 MB RSS, riêng host GUI khoảng 73–86 MB; giới hạn 20 MB cho tổng mọi tiến trình Rust chưa đạt. Chỉ kiểm runtime macOS.

@@ -154,6 +154,7 @@ test('serialized snapshots preserve timestamp, notes and completion through late
     assert.equal(writes.at(-1).notes, 'Updated');
     player.endScreen = { hide: () => {} };
     player.video.pause = () => {};
+    player.releaseMedia = async () => {};
     player.generation = 0;
     player.video.currentTime = 17;
     await player.leave();

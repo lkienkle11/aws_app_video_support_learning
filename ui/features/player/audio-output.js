@@ -66,6 +66,9 @@ export class AudioOutput {
     if (this.requestedBoost !== this.boost) return this.setBoost(this.requestedBoost);
     return this.resume();
   }
+  async suspend() {
+    if (this.context?.state === 'running') await this.context.suspend();
+  }
   async resume() {
     if (!this.context) return;
     if (this.context.state !== 'running') await this.context.resume();

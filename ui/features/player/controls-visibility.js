@@ -53,9 +53,11 @@ export class ControlsVisibility {
   }
   reveal() {
     this.clock.clearTimeout(this.timer);
-    this.visible = true;
-    this.frame.classList.add('controls-visible');
-    this.onChange(true);
+    if (!this.visible) {
+      this.visible = true;
+      this.frame.classList.add('controls-visible');
+      this.onChange(true);
+    }
     this.timer = this.clock.setTimeout(() => this.hideUnlessEditing(), 3000);
   }
   hideUnlessEditing() {
@@ -64,9 +66,10 @@ export class ControlsVisibility {
   hide() {
     this.editingColor = false;
     this.clock.clearTimeout(this.timer);
+    const changed = this.visible;
     this.visible = false;
     this.frame.classList.remove('controls-visible');
     this.panel.hidden = true;
-    this.onChange(false);
+    if (changed) this.onChange(false);
   }
 }
