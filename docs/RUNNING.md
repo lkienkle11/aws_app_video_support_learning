@@ -110,7 +110,7 @@ Thay đổi được xem ngay; chốt giá trị/rời ô để lưu. Cỡ chữ
 
 ## Ngôn ngữ ứng dụng
 
-Bộ chọn **Ngôn ngữ ứng dụng / Application language** ở thanh đầu trang chuyển toàn bộ giao diện giữa **Tiếng Việt** và **English**: điều hướng, tìm kiếm, trình phát, cài đặt phụ đề, hộp sửa mô tả, trạng thái và thông báo. Đổi ngay khi đang học, không tải lại video hoặc xóa ghi chú đang nhập. Lựa chọn được nhớ trong localStorage của WebView trên máy này; lần đầu mặc định tiếng Việt.
+Bộ chọn **Ngôn ngữ ứng dụng / Application language** ở thanh đầu trang chuyển toàn bộ giao diện giữa **Tiếng Việt** và **English**: điều hướng, tìm kiếm, trình phát, cài đặt phụ đề, hộp sửa mô tả, trạng thái và thông báo. Đổi ngay khi đang học, không tải lại video hoặc xóa ghi chú đang nhập. Lựa chọn được lưu trong SQLite theo thư viện; lần đầu mặc định tiếng Việt. localStorage chỉ giữ lựa chọn khởi động trước khi mở thư viện và làm nguồn chuyển tiếp cho dữ liệu cũ; sau khi mở thư viện, SQLite quyết định ngôn ngữ.
 
 Ngôn ngữ giao diện độc lập với bộ chọn **Ngôn ngữ tiêu đề**, **Ngôn ngữ tìm kiếm** và ngôn ngữ phụ đề. Tiêu đề, mô tả, tên chương, ghi chú và nội dung phụ đề là dữ liệu khóa học; không tự dịch khi đổi ngôn ngữ giao diện. Menu/hộp thoại tiêu chuẩn của hệ điều hành vẫn theo ngôn ngữ của hệ điều hành.
 
@@ -123,6 +123,12 @@ Bộ lọc **Tìm trong: Tất cả / Chỉ tiêu đề / Chỉ mô tả** giớ
 
 ## Âm lượng và tăng âm
 
-Thanh loa điều chỉnh 0–100% âm lượng video. Trong ⚙ của trình phát, **Tăng âm / Audio boost** cho phép chọn 100%, 150% hoặc 200% để nghe rõ nguồn nhỏ. Mặc định 100%; chỉ tạo xử lý Web Audio khi chủ động chọn tăng âm. Có compressor để hạn chế đỉnh âm; không chỉnh sửa/chuyển mã MP4 hoặc tạo bản audio mới. Độ lớn cảm nhận còn phụ thuộc nguồn thu, loa và âm lượng hệ điều hành.
+Thanh loa điều chỉnh 0–100% âm lượng video. Trong ⚙ của trình phát, **Tăng âm / Audio boost** cho phép chọn 100%, 150% hoặc 200% để nghe rõ nguồn nhỏ. Mặc định 100%; chỉ tạo xử lý Web Audio khi chọn tăng âm hoặc bắt đầu phát với mức tăng âm đã lưu. Có compressor để hạn chế đỉnh âm; không chỉnh sửa/chuyển mã MP4 hoặc tạo bản audio mới. Độ lớn cảm nhận còn phụ thuộc nguồn thu, loa và âm lượng hệ điều hành.
 
-Tăng âm giữ trong phiên cửa sổ, kể cả đổi bài; mở lại app về 100%. Bấm loa sau khi kéo về 0 khôi phục mức nghe trước đó; kéo loa lên hoặc phím ↑ cũng mở tiếng. Nếu WebView không hỗ trợ hoặc chưa cho chạy audio, app thông báo; đường native mặc định không bị đổi trước khi bật được xử lý.
+Âm lượng, mute, mức nghe trước khi tắt tiếng và tăng âm được lưu trong SQLite, giữ qua đổi bài và mở lại app. Mức tăng âm đã lưu được kích hoạt khi bắt đầu phát; nếu WebView chưa cho phép audio, lựa chọn vẫn được giữ để thử lại. Bấm loa sau khi kéo về 0 khôi phục mức nghe trước đó; kéo loa lên hoặc phím ↑ cũng mở tiếng. Nếu WebView không hỗ trợ hoặc chưa cho chạy audio, app thông báo; đường native mặc định không bị đổi trước khi bật được xử lý.
+
+### Lưu toàn bộ cài đặt
+
+SQLite trong thư mục thư viện lưu tốc độ phát, lặp video, tự phát bài tiếp, lựa chọn ngôn ngữ phụ đề (kể cả tắt), âm thanh và toàn bộ kiểu chữ/nền/vị trí phụ đề. Độ lệch thời gian phụ đề được lưu riêng theo từng bài. Ngôn ngữ giao diện, ngôn ngữ tiêu đề, từ khóa và bộ lọc tìm kiếm, chương, chế độ danh sách, theater, tab nội dung, mã ngôn ngữ nhập phụ đề và từ khóa transcript cũng được khôi phục từ SQLite. Mỗi thư viện có cài đặt riêng.
+
+Các thay đổi được gom ghi sau 150 ms; đổi bài, đổi thư viện và đóng cửa sổ/thoát ứng dụng chờ ghi xong. Giá trị cỡ chữ/nền đang xem trước cũng được ghi khi đóng dù chưa rời ô. Nếu ghi lỗi, ứng dụng thông báo và giữ cửa sổ để thử lại. Force Quit hoặc mất điện có thể mất thay đổi chưa ghi. Fullscreen và Picture in Picture là trạng thái tạm thời của hệ điều hành, không tự bật lại khi mở ứng dụng.

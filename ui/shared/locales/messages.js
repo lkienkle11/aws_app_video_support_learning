@@ -1,4 +1,14 @@
 export const messages = {
+  'Invalid playback settings': {
+    vi: 'Cài đặt phát video không hợp lệ',
+    en: 'Invalid playback settings',
+  },
+  'Invalid workspace settings': {
+    vi: 'Cài đặt giao diện không hợp lệ',
+    en: 'Invalid workspace settings',
+  },
+  'Invalid lesson settings': { vi: 'Cài đặt bài học không hợp lệ', en: 'Invalid lesson settings' },
+
   'Phạm vi tìm kiếm': { vi: 'Phạm vi tìm kiếm', en: 'Search fields' },
   'Tìm trong: Tất cả': { vi: 'Tìm trong: Tất cả', en: 'Search: All fields' },
   'Chỉ tiêu đề': { vi: 'Chỉ tiêu đề', en: 'Title only' },

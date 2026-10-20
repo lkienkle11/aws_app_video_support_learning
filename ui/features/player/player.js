@@ -1,6 +1,7 @@
 import { t, localizeError, onLocaleChange } from '../../shared/i18n.js';
 import { $, time, spritePosition, escapeHTML } from '../../shared/utils.js';
 import { invoke, asset } from '../../shared/api.js';
+import { PreferenceStore, playbackDefaults } from '../../shared/preferences.js';
 import { AudioOutput } from './audio-output.js';
 import { Captions } from './captions.js';
 import { EndScreen } from './end-screen.js';
@@ -12,6 +13,10 @@ export class Player {
     this.video = $('video');
     this.audio = new AudioOutput(this.video);
     this.notify = notify;
+    const onError = (error) =>
+      notify(t('Không lưu được cài đặt: {error}', { error: localizeError(error) }));
+    this.playback = new PreferenceStore('playback', playbackDefaults, { onError });
+    this.lessonSettings = new PreferenceStore('lesson', { caption_offset: 0 }, { onError });
     this.onProgress = onProgress;
     this.onNavigate = (delta) => {
       this.endScreen.hide();
@@ -42,7 +47,7 @@ export class Player {
     v.onplay = () => {
       if (v.paused || v.ended) return;
       this.endScreen.hide();
-      this.audio.resume().catch((error) => this.notify(localizeError(error)));
+      this.audio.activate().catch((error) => this.notify(localizeError(error)));
       $('player').classList.add('playing');
       $('play').textContent = 'Ⅱ';
     };
@@ -54,6 +59,7 @@ export class Player {
     };
     v.onloadedmetadata = () => {
       $('video-empty').hidden = true;
+      v.playbackRate = this.playback.value.speed;
       if (this.lesson && v.currentSrc === this.source)
         v.currentTime = resumePosition(this.lesson, v.duration);
       this.update();
@@ -99,18 +105,22 @@ export class Player {
     $('volume').oninput = (e) => {
       this.audio.setVolume(Number(e.target.value));
       this.volumeUI();
+      this.savePlayback();
     };
     $('mute').onclick = () => {
       this.audio.toggleMute();
       this.volumeUI();
+      this.savePlayback();
     };
     v.onvolumechange = () => {
       this.audio.syncNativeVolume();
       this.volumeUI();
+      this.savePlayback();
     };
     $('audio-boost').onchange = async (event) => {
       try {
         await this.audio.setBoost(Number(event.target.value));
+        this.savePlayback();
       } catch (error) {
         this.notify(t('Không bật được tăng âm: {error}', { error: localizeError(error) }));
       } finally {
@@ -118,19 +128,17 @@ export class Player {
       }
     };
     $('speed').onchange = (e) => {
-      v.playbackRate = Number(e.target.value);
+      v.defaultPlaybackRate = v.playbackRate = Number(e.target.value);
+      this.savePlayback();
     };
     $('loop').onchange = (e) => {
       v.loop = e.target.checked;
       if (v.loop) this.endScreen.cancel();
+      this.savePlayback();
     };
-    $('autoplay').onchange = async (e) => {
+    $('autoplay').onchange = (e) => {
       if (!e.target.checked) this.endScreen.cancel();
-      try {
-        await invoke('save_playback_settings', { settings: { autoplay: e.target.checked } });
-      } catch (error) {
-        this.notify(t('Không lưu được cài đặt: {error}', { error: localizeError(error) }));
-      }
+      this.savePlayback();
     };
     $('settings-toggle').onclick = () => {
       $('settings').hidden = !$('settings').hidden;
@@ -144,14 +152,9 @@ export class Player {
     $('subtitle-language').onchange = (e) => this.selectTrack(Number(e.target.value));
     $('caption-offset').onchange = (e) => {
       const offset = Math.max(-120, Math.min(120, Number(e.target.value) || 0));
-      for (const track of v.textTracks)
-        for (const cue of track.cues || []) {
-          if (!this.cueTimes.has(cue)) this.cueTimes.set(cue, [cue.startTime, cue.endTime]);
-          const [start, end] = this.cueTimes.get(cue);
-          cue.startTime = Math.max(0, start + offset);
-          cue.endTime = Math.max(cue.startTime + 0.001, end + offset);
-        }
       this.offset = offset;
+      this.lessonSettings.update({ caption_offset: offset });
+      this.applyOffset();
       e.target.value = offset;
       this.transcript();
     };
@@ -168,7 +171,10 @@ export class Player {
         this.notify(t('Không bật được hình trong hình: {error}', { error: localizeError(e) }));
       }
     };
-    $('theater').onclick = () => $('watch-view').classList.toggle('theater-mode');
+    $('theater').onclick = () => {
+      const theater = $('watch-view').classList.toggle('theater-mode');
+      this.onTheaterChange?.(theater);
+    };
     $('fullscreen').onclick = () => this.fullscreen();
     $('player').onkeydown = (e) => {
       if (['INPUT', 'SELECT', 'TEXTAREA'].includes(e.target.tagName)) return;
@@ -200,6 +206,7 @@ export class Player {
       if (key === 'arrowup' || key === 'arrowdown') {
         this.audio.setVolume(this.audio.volume + (key === 'arrowup' ? 0.05 : -0.05));
         this.volumeUI();
+        this.savePlayback();
       }
       if (key === 'f') this.fullscreen();
       if (key === 'm') $('mute').click();
@@ -214,7 +221,10 @@ export class Player {
       if (this.videoError !== undefined) this.renderVideoError();
       this.transcript();
     });
-    $('transcript-search').oninput = () => this.transcript();
+    $('transcript-search').oninput = () => {
+      this.transcript();
+      this.onTranscriptSearch?.();
+    };
     document.addEventListener('visibilitychange', () => {
       if (document.hidden) this.save().catch(() => {});
     });
@@ -222,6 +232,45 @@ export class Player {
       this.endScreen.hide();
       this.save().catch(() => {});
     });
+  }
+  async loadSettings() {
+    const settings = await this.playback.load();
+    this.restoringSettings = true;
+    this.audio.restore(settings);
+    this.video.defaultPlaybackRate = this.video.playbackRate = settings.speed;
+    this.video.loop = settings.repeat;
+    $('autoplay').checked = settings.autoplay;
+    $('speed').value = settings.speed;
+    $('loop').checked = settings.repeat;
+    $('audio-boost').value = settings.audio_boost;
+    this.volumeUI();
+    this.restoringSettings = false;
+  }
+  savePlayback() {
+    if (!this.playback.loaded || this.restoringSettings) return;
+    this.playback.update({
+      autoplay: $('autoplay').checked,
+      volume: this.audio.volume,
+      muted: this.audio.muted,
+      last_volume: this.audio.lastAudibleVolume,
+      audio_boost: this.audio.requestedBoost,
+      speed: Number($('speed').value),
+      repeat: $('loop').checked,
+    });
+  }
+  applyOffset() {
+    for (const track of this.video.textTracks)
+      for (const cue of track.cues || []) {
+        if (!this.cueTimes.has(cue)) this.cueTimes.set(cue, [cue.startTime, cue.endTime]);
+        const [start, end] = this.cueTimes.get(cue);
+        cue.startTime = Math.max(0, start + this.offset);
+        cue.endTime = Math.max(cue.startTime + 0.001, end + this.offset);
+      }
+  }
+  async flushPreferences() {
+    await this.playback?.flush();
+    await this.lessonSettings?.flush();
+    await this.captions?.flush();
   }
   renderVideoError() {
     const reasons = {
@@ -247,6 +296,7 @@ export class Player {
   replay() {
     this.endScreen.hide();
     this.video.currentTime = 0;
+    this.audio.activate().catch((error) => this.notify(localizeError(error)));
     this.video.play().catch((e) => this.notify(e.message));
     $('player').focus();
   }
@@ -255,12 +305,15 @@ export class Player {
     this.endScreen.hide();
     this.video.pause();
     await this.save();
+    await this.flushPreferences();
     this.source = null;
   }
   toggle() {
     if (this.video.ended) return this.replay();
-    if (this.video.paused) this.video.play().catch((e) => this.notify(e.message));
-    else this.video.pause();
+    if (this.video.paused) {
+      this.audio.activate().catch((error) => this.notify(localizeError(error)));
+      this.video.play().catch((e) => this.notify(e.message));
+    } else this.video.pause();
   }
   seekBy(seconds) {
     if (!Number.isFinite(this.video.duration)) return;
@@ -287,12 +340,15 @@ export class Player {
     this.endScreen.hide();
     this.video.pause();
     await this.save();
+    await this.flushPreferences();
     if (generation !== this.generation) return;
     this.source = null;
     this.video.pause();
     this.lesson = lesson;
     await this.captions.load();
-    const settings = await invoke('load_playback_settings');
+    if (!this.playback.loaded) await this.loadSettings();
+    const settings = this.playback.value;
+    const lessonSettings = await this.lessonSettings.load({ id: lesson.id });
     if (generation !== this.generation) return;
     $('autoplay').checked = settings.autoplay;
     this.captions.render(null);
@@ -313,8 +369,17 @@ export class Player {
     $('settings').hidden = true;
     $('subtitle-language').innerHTML = `<option value="-1">${t('Tắt')}</option>`;
     this.selectedTrack = -1;
-    this.offset = 0;
-    $('caption-offset').value = 0;
+    $('captions-toggle').classList.remove('enabled');
+    this.offset = lessonSettings.caption_offset;
+    $('caption-offset').value = this.offset;
+    const preferred = settings.subtitle_language;
+    this.desiredTrackIndex =
+      preferred === 'off'
+        ? -1
+        : Math.max(
+            0,
+            lesson.tracks.findIndex((track) => track.language === preferred),
+          );
     $('transcript').replaceChildren();
     let source;
     try {
@@ -351,7 +416,8 @@ export class Player {
         node.src = url;
         node.onload = () => {
           if (generation !== this.generation) return;
-          if (index === 0) this.selectTrack(0);
+          this.applyOffset();
+          if (index === this.desiredTrackIndex) this.selectTrack(index, false);
           node.track.oncuechange = () => this.highlightCue();
         };
         this.video.append(node);
@@ -366,7 +432,12 @@ export class Player {
     }
     if (play && generation === this.generation) this.video.play().catch(() => {});
   }
-  selectTrack(index) {
+  selectTrack(index, persist = true) {
+    this.desiredTrackIndex = index;
+    if (persist)
+      this.playback.update({
+        subtitle_language: index < 0 ? 'off' : this.lesson.tracks[index].language,
+      });
     this.selectedTrack = index;
     for (const track of this.video.textTracks) track.mode = 'hidden';
     $('subtitle-language').value = index;

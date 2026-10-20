@@ -48,6 +48,30 @@ impl Service {
                 preferences::save_playback(&database::open(root)?, &settings)?;
                 Ok(Value::Null)
             }
+            "load_workspace_settings" => {
+                serde_json::to_value(preferences::load_workspace(&database::open(root)?)?)
+                    .map_err(|e| e.to_string())
+            }
+            "save_workspace_settings" => {
+                let value =
+                    serde_json::from_value(args["settings"].clone()).map_err(|e| e.to_string())?;
+                preferences::save_workspace(&database::open(root)?, &value)?;
+                Ok(Value::Null)
+            }
+            "load_lesson_settings" => {
+                let id = string("id")?;
+                catalog::safe_path(root, id)?;
+                serde_json::to_value(preferences::load_lesson(&database::open(root)?, id)?)
+                    .map_err(|e| e.to_string())
+            }
+            "save_lesson_settings" => {
+                let id = string("id")?;
+                catalog::safe_path(root, id)?;
+                let value =
+                    serde_json::from_value(args["settings"].clone()).map_err(|e| e.to_string())?;
+                preferences::save_lesson(&database::open(root)?, id, &value)?;
+                Ok(Value::Null)
+            }
             "load_caption_settings" => {
                 serde_json::to_value(preferences::load_captions(&database::open(root)?)?)
                     .map_err(|e| e.to_string())

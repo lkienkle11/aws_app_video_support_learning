@@ -71,9 +71,10 @@ export class Captions {
     this.box.onpointercancel = finish;
   }
   async load() {
-    if (this.pendingSave) await this.pendingSave;
+    await this.flush();
     this.settings = await invoke('load_caption_settings');
     this.loaded = true;
+    this.lastSaved = JSON.stringify(this.settings);
     this.apply();
   }
   async save() {
@@ -81,14 +82,25 @@ export class Captions {
     try {
       const settings = { ...this.settings };
       this.pendingSave = (this.pendingSave || Promise.resolve())
-        .then(() => invoke('save_caption_settings', { settings }))
+        .then(async () => {
+          await invoke('save_caption_settings', { settings });
+          this.lastSaved = JSON.stringify(settings);
+          this.saveError = null;
+        })
         .catch((error) => {
+          this.saveError = error;
           this.notify(t('Không lưu được cài đặt phụ đề: {error}', { error: localizeError(error) }));
         });
       await this.pendingSave;
     } catch (error) {
+      this.saveError = error;
       this.notify(t('Không lưu được cài đặt phụ đề: {error}', { error: localizeError(error) }));
     }
+  }
+  async flush() {
+    await this.pendingSave;
+    if (this.loaded && JSON.stringify(this.settings) !== this.lastSaved) await this.save();
+    if (this.saveError) throw this.saveError;
   }
   apply() {
     this.box.style.fontSize = `${this.settings.size}px`;

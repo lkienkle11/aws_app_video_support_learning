@@ -4,9 +4,12 @@ use std::{
     io::{BufRead, BufReader, Write},
     path::PathBuf,
     process::{Child, ChildStdin, ChildStdout, Command, Stdio},
-    sync::Mutex,
+    sync::{
+        atomic::{AtomicBool, Ordering},
+        Mutex,
+    },
 };
-use tauri::{Manager, State};
+use tauri::{Emitter, Manager, State};
 type Result<T> = std::result::Result<T, String>;
 struct Core {
     child: Child,
@@ -72,7 +75,7 @@ impl Drop for Core {
         let _ = self.child.wait();
     }
 }
-struct Backend(Mutex<Core>);
+struct Backend(Mutex<Core>, AtomicBool);
 fn load(app: &tauri::AppHandle, core: &mut Core, path: PathBuf) -> Result<Value> {
     let result = core.call("open_library", json!({"path":path}))?;
     let root = result["root"].as_str().ok_or("Invalid library root")?;
@@ -88,6 +91,10 @@ fn backend(
     command: String,
     args: Value,
 ) -> Result<Value> {
+    if command == "ui_ready" {
+        state.1.store(true, Ordering::Relaxed);
+        return Ok(Value::Null);
+    }
     let mut core = state.0.lock().map_err(|e| e.to_string())?;
     if command == "open_library" {
         return load(
@@ -124,7 +131,7 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .setup(|app| {
-            app.manage(Backend(Mutex::new(Core::start()?)));
+            app.manage(Backend(Mutex::new(Core::start()?), AtomicBool::new(false)));
             // Optional compact desktop size, also used for native responsive QA.
             if let Ok(value) = std::env::var("CLOUD_STUDY_WINDOW_SIZE") {
                 if let Some((width, height)) = value.split_once('x') {
@@ -140,6 +147,16 @@ pub fn run() {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![backend])
-        .run(tauri::generate_context!())
-        .expect("Unable to start Cloud Study");
+        .build(tauri::generate_context!())
+        .expect("Unable to start Cloud Study")
+        .run(|app, event| {
+            if let tauri::RunEvent::ExitRequested { api, .. } = event {
+                if app.state::<Backend>().1.load(Ordering::Relaxed) {
+                    if let Some(window) = app.get_webview_window("main") {
+                        api.prevent_exit();
+                        let _ = window.emit("cloud-study:quit", ());
+                    }
+                }
+            }
+        });
 }

@@ -8,6 +8,8 @@ import {
 } from '../../shared/i18n.js';
 import { $, time, escapeHTML as h, localized } from '../../shared/utils.js';
 import { invoke, asset, chooseDirectory, chooseSubtitle } from '../../shared/api.js';
+import { PreferenceStore, workspaceDefaults } from '../../shared/preferences.js';
+import { installCloseGuard } from '../../shared/window-lifecycle.js';
 import { Player } from '../player/player.js';
 import { revealActiveLesson } from './playlist-scroll.js';
 
@@ -28,6 +30,77 @@ function notify(message) {
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => ($('toast').hidden = true), 6500);
 }
+const workspace = new PreferenceStore('workspace', workspaceDefaults, {
+  onError: (error) => notify(t('Không lưu được cài đặt: {error}', { error: localizeError(error) })),
+});
+let restoringPreferences = false;
+function persistWorkspace() {
+  if (restoringPreferences) return;
+  workspace.update({
+    locale: getLocale(),
+    display_language: state.language,
+    search_language: $('search-language').value,
+    search_field: $('search-field').value,
+    query: $('search').value,
+    chapter: $('chapter-filter').value,
+    mode: state.mode,
+    theater: $('watch-view').classList.contains('theater-mode'),
+    active_tab: document.querySelector('[data-tab].active')?.dataset.tab || 'description',
+    import_language: /^[A-Za-z-]{1,20}$/.test($('import-language').value)
+      ? $('import-language').value
+      : workspace.value.import_language,
+    transcript_query: $('transcript-search').value,
+  });
+}
+function setTab(tab, persist = true) {
+  document
+    .querySelectorAll('[data-tab]')
+    .forEach((button) => button.classList.toggle('active', button.dataset.tab === tab));
+  for (const name of ['description', 'transcript', 'notes']) $(`${name}-tab`).hidden = name !== tab;
+  if (tab === 'transcript') player.transcript();
+  if (persist) persistWorkspace();
+}
+function restoreWorkspace() {
+  const prefs = workspace.value;
+  restoringPreferences = true;
+  state.language = prefs.display_language;
+  state.mode = prefs.mode;
+  for (const [id, key] of [
+    ['search', 'query'],
+    ['search-field', 'search_field'],
+    ['search-language', 'search_language'],
+    ['chapter-filter', 'chapter'],
+    ['display-language', 'display_language'],
+    ['import-language', 'import_language'],
+    ['transcript-search', 'transcript_query'],
+  ]) {
+    if (
+      $(id).tagName === 'SELECT' &&
+      prefs[key] &&
+      ![...$(id).options].some((option) => option.value === prefs[key]) &&
+      id !== 'chapter-filter'
+    ) {
+      const option = document.createElement('option');
+      option.value = option.textContent = prefs[key];
+      $(id).append(option);
+    }
+    $(id).value = prefs[key];
+  }
+  $('watch-view').classList.toggle('theater-mode', prefs.theater);
+  setTab(prefs.active_tab, false);
+  restoringPreferences = false;
+}
+async function loadPreferences() {
+  const prefs = await workspace.load();
+  restoringPreferences = true;
+  setLocale(prefs.locale || getLocale(), { persist: false });
+  restoringPreferences = false;
+  $('library-path').textContent = state.root;
+  $('app-language').value = getLocale();
+  if (!prefs.locale) workspace.update({ locale: getLocale() });
+  await player.loadSettings();
+}
+
 const player = new Player({
   notify,
   getNextTitle: () => {
@@ -61,6 +134,9 @@ const player = new Player({
     else notify(t('Bạn đã đến cuối danh sách bài học.'));
   },
 });
+player.onTheaterChange = () => persistWorkspace();
+player.onTranscriptSearch = () => persistWorkspace();
+$('import-language').onchange = () => persistWorkspace();
 function updateStats() {
   const count = state.all.length;
   const completed = state.all.filter((l) => l.completed).length;
@@ -83,6 +159,7 @@ function updateStats() {
     : t('Bắt đầu học');
 }
 function chapters() {
+  const currentChapter = $('chapter-filter').value;
   const chapters = [...new Set(state.all.map((l) => l.chapter).filter(Boolean))];
   $('chapters').innerHTML = chapters
     .map(
@@ -93,6 +170,7 @@ function chapters() {
   $('chapter-filter').innerHTML =
     `<option value="">${t('Tất cả chương')}</option>` +
     chapters.map((c) => `<option>${h(c)}</option>`).join('');
+  $('chapter-filter').value = currentChapter;
   $('chapters')
     .querySelectorAll('button')
     .forEach(
@@ -116,9 +194,10 @@ function chapters() {
       }
     }
 }
-async function refresh() {
+async function refresh(restore = false) {
   state.all = await invoke('search_lessons', { query: '', language: '' });
   chapters();
+  if (restore) restoreWorkspace();
   updateStats();
   await search();
 }
@@ -249,6 +328,7 @@ async function watch(lesson, play = true) {
   }
 }
 async function home() {
+  persistWorkspace();
   await player.leave();
   $('watch-view').hidden = true;
   $('library-view').hidden = false;
@@ -261,6 +341,8 @@ async function chooseLibrary() {
     const path = await chooseDirectory();
     if (!path) return;
     await player.leave();
+    persistWorkspace();
+    await workspace.flush();
     const info = await invoke('open_library', { path });
     state.root = info.root;
     $('library-path').textContent = info.root;
@@ -268,7 +350,8 @@ async function chooseLibrary() {
     player.lesson = null;
     $('watch-view').hidden = true;
     $('library-view').hidden = false;
-    await refresh();
+    await loadPreferences();
+    await refresh(true);
     notify(t('Đã tải {count} bài học.', { count: info.lessons }));
   } catch (e) {
     notify(e);
@@ -304,6 +387,7 @@ $('all-lessons').onclick = () => {
   state.mode = 'all';
   $('chapter-filter').value = '';
   $('search').value = '';
+  persistWorkspace();
   search();
 };
 $('resume').onclick = () =>
@@ -318,17 +402,22 @@ $('load-more').onclick = () => {
 };
 let searchTimer;
 $('search').oninput = () => {
+  persistWorkspace();
   clearTimeout(searchTimer);
   searchTimer = setTimeout(search, 180);
 };
-$('search-language').onchange = search;
-$('search-field').onchange = search;
+$('search-language').onchange = $('search-field').onchange = () => {
+  persistWorkspace();
+  search();
+};
 $('chapter-filter').onchange = () => {
+  persistWorkspace();
   state.limit = 24;
   render();
 };
 $('display-language').onchange = () => {
   state.language = $('display-language').value;
+  persistWorkspace();
   render();
   updateWatchText();
   playlist();
@@ -340,17 +429,9 @@ document.addEventListener('keydown', (e) => {
     $('search').focus();
   }
 });
-document.querySelectorAll('[data-tab]').forEach(
-  (button) =>
-    (button.onclick = () => {
-      document
-        .querySelectorAll('[data-tab]')
-        .forEach((b) => b.classList.toggle('active', b === button));
-      for (const tab of ['description', 'transcript', 'notes'])
-        $(`${tab}-tab`).hidden = tab !== button.dataset.tab;
-      if (button.dataset.tab === 'transcript') player.transcript();
-    }),
-);
+document
+  .querySelectorAll('[data-tab]')
+  .forEach((button) => (button.onclick = () => setTab(button.dataset.tab)));
 $('mark-complete').onclick = async () => {
   if (!state.selected) return;
   state.selected.completed = !state.selected.completed;
@@ -444,23 +525,25 @@ $('import-subtitle').onclick = async () => {
 };
 const appWindow = window.__TAURI__?.window?.getCurrentWindow();
 if (appWindow) {
-  appWindow
-    .onCloseRequested(async (event) => {
-      try {
-        await player.leave();
-        await player.captions.pendingSave;
-      } catch {
-        event.preventDefault();
-      }
-    })
-    .catch(notify);
+  await installCloseGuard(
+    appWindow,
+    async () => {
+      persistWorkspace();
+      await player.leave();
+      await workspace.flush();
+    },
+    (error) => notify(t('Không lưu được cài đặt: {error}', { error: localizeError(error) })),
+  );
+  await invoke('ui_ready');
 }
 
 translateDOM();
 $('app-language').value = getLocale();
 $('app-language').onchange = (event) => setLocale(event.target.value);
 onLocaleChange(() => {
+  if (restoringPreferences) return;
   $('app-language').value = getLocale();
+  persistWorkspace();
   $('toast').hidden = true;
   if (state.root) $('library-path').textContent = state.root;
   const selectedChapter = $('chapter-filter').value;
@@ -479,7 +562,8 @@ try {
   const info = await invoke('default_library');
   state.root = info.root;
   $('library-path').textContent = info.root;
-  await refresh();
+  await loadPreferences();
+  await refresh(true);
 } catch (e) {
   $('hero-meta').textContent = t('Chọn thư mục files qua nút ⚙ ở góc trái.');
   $('empty').hidden = false;

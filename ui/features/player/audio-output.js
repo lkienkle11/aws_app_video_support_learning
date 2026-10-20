@@ -51,6 +51,21 @@ export class AudioOutput {
     if (this.output)
       this.output.gain.setTargetAtTime(this.muted ? 0 : this.level, this.context.currentTime, 0.01);
   }
+  restore(settings) {
+    this.setVolume(settings.volume);
+    this.video.muted = settings.muted;
+    this.lastAudibleVolume = settings.last_volume;
+    this.requestedBoost = settings.audio_boost;
+    if (this.gain) {
+      this.boost = settings.audio_boost;
+      this.gain.gain.setTargetAtTime(this.boost, this.context.currentTime, 0.02);
+    }
+    this.applyVolume();
+  }
+  async activate() {
+    if (this.requestedBoost !== this.boost) return this.setBoost(this.requestedBoost);
+    return this.resume();
+  }
   async resume() {
     if (!this.context) return;
     if (this.context.state !== 'running') await this.context.resume();

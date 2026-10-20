@@ -341,3 +341,161 @@ fn search_filters_title_description_and_language() {
             .is_err());
     }
 }
+
+#[test]
+fn every_preference_survives_restart_and_libraries_are_isolated() {
+    let first = tempfile::tempdir().unwrap();
+    let second = tempfile::tempdir().unwrap();
+    for root in [first.path(), second.path()] {
+        for name in ["001-Test.mp4", "002-Test.mp4"] {
+            fs::write(root.join(name), []).unwrap();
+        }
+    }
+    let mut service = Service::default();
+    service
+        .dispatch("open_library", json!({"path":first.path()}))
+        .unwrap();
+    let db = rusqlite::Connection::open(first.path().join("cloud-study.sqlite")).unwrap();
+    db.execute(
+        "INSERT INTO preferences(key,value) VALUES ('playback','{\"autoplay\":false}')",
+        [],
+    )
+    .unwrap();
+    let legacy = service
+        .dispatch("load_playback_settings", json!({}))
+        .unwrap();
+    assert_eq!(legacy["autoplay"], false);
+    assert_eq!(legacy["volume"], 1.0);
+    assert_eq!(legacy["audio_boost"], 1.0);
+    let raw: String = db
+        .query_row(
+            "SELECT value FROM preferences WHERE key='playback'",
+            [],
+            |row| row.get(0),
+        )
+        .unwrap();
+    assert_eq!(raw, "{\"autoplay\":false}");
+    let playback = json!({"autoplay":false,"volume":0.4,"muted":true,"last_volume":0.6,"audio_boost":2.0,"speed":1.5,"repeat":true,"subtitle_language":"vi"});
+    let workspace = json!({"locale":"en","display_language":"en","search_language":"vi","search_field":"description","query":"bao mat","chapter":"IAM","mode":"progress","theater":true,"active_tab":"notes","import_language":"ja","transcript_query":"policy"});
+    for (command, value) in [
+        ("save_playback_settings", playback.clone()),
+        ("save_workspace_settings", workspace.clone()),
+    ] {
+        service
+            .dispatch(command, json!({"settings":value}))
+            .unwrap();
+    }
+    service
+        .dispatch(
+            "save_lesson_settings",
+            json!({"id":"001-Test.mp4","settings":{"caption_offset":2.5}}),
+        )
+        .unwrap();
+    service
+        .dispatch(
+            "save_lesson_settings",
+            json!({"id":"002-Test.mp4","settings":{"caption_offset":-1.0}}),
+        )
+        .unwrap();
+    drop(service);
+    let mut reopened = Service::default();
+    reopened
+        .dispatch("open_library", json!({"path":first.path()}))
+        .unwrap();
+    assert_eq!(
+        reopened
+            .dispatch("load_playback_settings", json!({}))
+            .unwrap(),
+        playback
+    );
+    assert_eq!(
+        reopened
+            .dispatch("load_workspace_settings", json!({}))
+            .unwrap(),
+        workspace
+    );
+    assert_eq!(
+        reopened
+            .dispatch("load_lesson_settings", json!({"id":"001-Test.mp4"}))
+            .unwrap()["caption_offset"],
+        2.5
+    );
+    assert_eq!(
+        reopened
+            .dispatch("load_lesson_settings", json!({"id":"002-Test.mp4"}))
+            .unwrap()["caption_offset"],
+        -1.0
+    );
+    for (field, value) in [
+        ("volume", json!(-0.1)),
+        ("volume", json!(1.1)),
+        ("last_volume", json!(0)),
+        ("audio_boost", json!(3)),
+        ("speed", json!(7)),
+        ("subtitle_language", json!("<bad>")),
+    ] {
+        let mut invalid = playback.clone();
+        invalid[field] = value;
+        assert!(reopened
+            .dispatch("save_playback_settings", json!({"settings":invalid}))
+            .is_err());
+    }
+    for (field, value) in [
+        ("locale", json!("ja")),
+        ("search_field", json!("sql")),
+        ("active_tab", json!("bad")),
+        ("mode", json!("bad")),
+        ("import_language", json!("../")),
+    ] {
+        let mut invalid = workspace.clone();
+        invalid[field] = value;
+        assert!(reopened
+            .dispatch("save_workspace_settings", json!({"settings":invalid}))
+            .is_err());
+    }
+    assert!(reopened
+        .dispatch(
+            "save_lesson_settings",
+            json!({"id":"001-Test.mp4","settings":{"caption_offset":121}})
+        )
+        .is_err());
+    assert!(reopened
+        .dispatch("load_lesson_settings", json!({"id":"../outside.mp4"}))
+        .is_err());
+    reopened
+        .dispatch("open_library", json!({"path":second.path()}))
+        .unwrap();
+    assert_eq!(
+        reopened
+            .dispatch("load_playback_settings", json!({}))
+            .unwrap()["audio_boost"],
+        1.0
+    );
+    assert_eq!(
+        reopened
+            .dispatch("load_workspace_settings", json!({}))
+            .unwrap()["locale"],
+        serde_json::Value::Null
+    );
+    assert_eq!(
+        reopened
+            .dispatch("load_lesson_settings", json!({"id":"001-Test.mp4"}))
+            .unwrap()["caption_offset"],
+        0.0
+    );
+    reopened
+        .dispatch("open_library", json!({"path":first.path()}))
+        .unwrap();
+    assert_eq!(
+        reopened
+            .dispatch("load_playback_settings", json!({}))
+            .unwrap(),
+        playback
+    );
+    assert_eq!(
+        reopened
+            .dispatch("load_workspace_settings", json!({}))
+            .unwrap(),
+        workspace
+    );
+}

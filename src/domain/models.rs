@@ -73,9 +73,64 @@ pub struct LibraryInfo {
 #[serde(default)]
 pub struct PlaybackSettings {
     pub autoplay: bool,
+    pub volume: f64,
+    pub muted: bool,
+    pub last_volume: f64,
+    pub audio_boost: f64,
+    pub speed: f64,
+    pub repeat: bool,
+    pub subtitle_language: String,
 }
 impl Default for PlaybackSettings {
     fn default() -> Self {
-        Self { autoplay: true }
+        Self {
+            autoplay: true,
+            volume: 1.0,
+            muted: false,
+            last_volume: 1.0,
+            audio_boost: 1.0,
+            speed: 1.0,
+            repeat: false,
+            subtitle_language: "auto".into(),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[serde(default)]
+pub struct LessonSettings {
+    pub caption_offset: f64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(default)]
+pub struct WorkspaceSettings {
+    pub locale: Option<String>,
+    pub display_language: String,
+    pub search_language: String,
+    pub search_field: String,
+    pub query: String,
+    pub chapter: String,
+    pub mode: String,
+    pub theater: bool,
+    pub active_tab: String,
+    pub import_language: String,
+    pub transcript_query: String,
+}
+impl Default for WorkspaceSettings {
+    fn default() -> Self {
+        Self {
+            locale: None,
+            display_language: "vi".into(),
+            search_language: String::new(),
+            search_field: "all".into(),
+            query: String::new(),
+            chapter: String::new(),
+            mode: "all".into(),
+            theater: false,
+            active_tab: "description".into(),
+            import_language: "vi".into(),
+            transcript_query: String::new(),
+        }
     }
 }

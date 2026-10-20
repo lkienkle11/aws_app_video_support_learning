@@ -129,6 +129,15 @@ test('preview updates immediately; SQLite writes keep the latest color and alpha
     assert.equal(next.settings.background_opacity, 0.35);
     assert.equal(node('caption-overlay').style.color, 'rgba(18,171,239,0.62)');
     assert.equal(node('caption-overlay').style.opacity, undefined, 'do not fade the whole box');
+    const size = node('caption-size');
+    size.value = '42';
+    size.oninput({ target: size });
+    await next.flush();
+    assert.equal(
+      stored.size,
+      42,
+      'closing must save the current preview even without a change/blur event',
+    );
   } finally {
     for (const [key, value] of Object.entries(previous)) {
       if (value === undefined) delete globalThis[key];
