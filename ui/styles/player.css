@@ -540,3 +540,70 @@ dialog form > div {
   font-size: 11px;
   font-variant-numeric: tabular-nums;
 }
+
+.caption-overlay {
+  display: grid;
+  place-items: center;
+}
+.caption-overlay[hidden] {
+  display: none;
+}
+.caption-dialog {
+  width: 520px;
+  max-height: 88vh;
+  overflow-y: auto;
+}
+.caption-dialog .caption-style {
+  border-color: var(--border);
+}
+.caption-dialog .caption-style legend {
+  color: #47634b;
+}
+.caption-form label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.caption-form input[type='number'] {
+  width: 110px;
+  margin: 0;
+}
+.caption-form input[type='color'] {
+  width: 115px;
+  height: 32px;
+  padding: 2px;
+  margin: 0;
+}
+.caption-form .caption-opacity-control input {
+  padding: 0;
+  margin: 0;
+}
+.caption-dialog .caption-style label:last-child {
+  margin-bottom: 0;
+}
+.caption-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 18px;
+}
+.app-language {
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: white;
+  color: #34563d;
+  padding: 7px;
+  max-width: 128px;
+}
+@media (max-width: 600px) {
+  .app-language {
+    max-width: 95px;
+    padding: 5px;
+    font-size: 11px;
+  }
+  .caption-dialog {
+    padding: 14px;
+  }
+}

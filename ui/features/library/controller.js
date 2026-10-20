@@ -1,3 +1,11 @@
+import {
+  t,
+  localizeError,
+  getLocale,
+  setLocale,
+  translateDOM,
+  onLocaleChange,
+} from '../../shared/i18n.js';
 import { $, time, escapeHTML as h, localized } from '../../shared/utils.js';
 import { invoke, asset, chooseDirectory, chooseSubtitle } from '../../shared/api.js';
 import { Player } from '../player/player.js';
@@ -15,7 +23,7 @@ const state = {
 };
 let toastTimer;
 function notify(message) {
-  $('toast').textContent = String(message);
+  $('toast').textContent = localizeError(message);
   $('toast').hidden = false;
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => ($('toast').hidden = true), 6500);
@@ -33,8 +41,10 @@ const player = new Player({
     const result = state.results.findIndex((l) => l.id === lesson.id);
     if (result >= 0) state.results[result] = lesson;
     updateStats();
-    $('playlist-count').textContent =
-      `${state.all.length} bài · ${state.all.filter((l) => l.completed).length} hoàn thành`;
+    $('playlist-count').textContent = t('{count} bài · {completed} hoàn thành', {
+      count: state.all.length,
+      completed: state.all.filter((l) => l.completed).length,
+    });
     for (const button of $('playlist').querySelectorAll('button')) {
       if (button.dataset.id === lesson.id)
         button.querySelector('span').textContent = lesson.completed
@@ -42,13 +52,13 @@ const player = new Player({
           : String(lesson.number).padStart(3, '0');
     }
     if (state.selected?.id === lesson.id)
-      $('mark-complete').textContent = lesson.completed ? '✓ Đã hoàn thành' : '✓ Hoàn thành';
+      $('mark-complete').textContent = lesson.completed ? t('✓ Đã hoàn thành') : t('✓ Hoàn thành');
   },
   onNavigate: (delta) => {
     const index = state.all.findIndex((l) => l.id === state.selected?.id);
     const next = state.all[index + delta];
     if (next) watch(next);
-    else notify('Bạn đã đến cuối danh sách bài học.');
+    else notify(t('Bạn đã đến cuối danh sách bài học.'));
   },
 });
 function updateStats() {
@@ -60,12 +70,17 @@ function updateStats() {
   $('stat-completed').textContent = completed;
   $('stat-progress').textContent = percent + '%';
   const duration = state.all.reduce((sum, l) => sum + l.duration, 0);
-  $('stat-hours').textContent = duration ? `${(duration / 3600).toFixed(1)} giờ` : '—';
+  $('stat-hours').textContent = duration
+    ? t('{hours} giờ', { hours: (duration / 3600).toFixed(1) })
+    : '—';
   $('progress-ring').style.background = `conic-gradient(#8daf7d ${percent}%,#edf2e6 0)`;
-  $('hero-meta').textContent = `${count} bài học · ${completed} đã hoàn thành`;
+  $('hero-meta').textContent = t('{count} bài học · {completed} đã hoàn thành', {
+    count,
+    completed,
+  });
   $('resume').querySelector('span').textContent = state.all.some((l) => l.position > 0)
-    ? 'Tiếp tục học'
-    : 'Bắt đầu học';
+    ? t('Tiếp tục học')
+    : t('Bắt đầu học');
 }
 function chapters() {
   const chapters = [...new Set(state.all.map((l) => l.chapter).filter(Boolean))];
@@ -76,7 +91,7 @@ function chapters() {
     )
     .join('');
   $('chapter-filter').innerHTML =
-    '<option value="">Tất cả chương</option>' +
+    `<option value="">${t('Tất cả chương')}</option>` +
     chapters.map((c) => `<option>${h(c)}</option>`).join('');
   $('chapters')
     .querySelectorAll('button')
@@ -93,6 +108,7 @@ function chapters() {
   for (const lang of languages)
     if (!['en', 'vi'].includes(lang)) {
       for (const id of ['display-language', 'search-language']) {
+        if ([...$(id).options].some((option) => option.value === lang)) continue;
         const option = document.createElement('option');
         option.value = lang;
         option.textContent = lang;
@@ -141,7 +157,7 @@ function render() {
         : lesson.duration
           ? Math.min(100, (lesson.position / lesson.duration) * 100)
           : 0;
-      return `<article class="lesson-card" tabindex="0" role="button" data-id="${h(lesson.id)}" aria-label="Xem trước ${h(text.title)}"><div class="card-art ${['', 'blue', 'sand'][i % 3]}"><span class="card-symbol">${['☁', '⌘', '▤', '⌁', '⛨'][i % 5]}</span><span class="card-badge">BÀI ${String(lesson.number).padStart(3, '0')}</span><span class="card-play">▶</span><span class="duration">${lesson.duration ? time(lesson.duration) : 'VIDEO'}</span></div><div class="card-body"><span class="card-chapter">${h(lesson.chapter || 'AWS Cloud Practitioner')}</span><h3>${h(text.title)}</h3><p>${h(text.description)}</p><div class="card-footer"><span>▤ ${lesson.tracks.length ? lesson.tracks.map((t) => h(t.language.toUpperCase())).join(' · ') : 'Chưa có phụ đề'}</span><span>${lesson.completed ? '✓ Đã học' : lesson.position ? '◷ Đang học' : 'Bắt đầu khám phá ↗'}</span></div></div><div class="card-progress"><span style="width:${percent}%"></span></div></article>`;
+      return `<article class="lesson-card" tabindex="0" role="button" data-id="${h(lesson.id)}" aria-label="${h(t('Xem trước {title}', { title: text.title }))}"><div class="card-art ${['', 'blue', 'sand'][i % 3]}"><span class="card-symbol">${['☁', '⌘', '▤', '⌁', '⛨'][i % 5]}</span><span class="card-badge">${t('BÀI')} ${String(lesson.number).padStart(3, '0')}</span><span class="card-play">▶</span><span class="duration">${lesson.duration ? time(lesson.duration) : 'VIDEO'}</span></div><div class="card-body"><span class="card-chapter">${h(lesson.chapter || 'AWS Cloud Practitioner')}</span><h3>${h(text.title)}</h3><p>${h(text.description)}</p><div class="card-footer"><span>▤ ${lesson.tracks.length ? lesson.tracks.map((t) => h(t.language.toUpperCase())).join(' · ') : t('Chưa có phụ đề')}</span><span>${lesson.completed ? t('✓ Đã học') : lesson.position ? t('◷ Đang học') : t('Bắt đầu khám phá ↗')}</span></div></div><div class="card-progress"><span style="width:${percent}%"></span></div></article>`;
     })
     .join('');
   $('lesson-grid')
@@ -170,8 +186,10 @@ function render() {
     });
 }
 function playlist() {
-  $('playlist-count').textContent =
-    `${state.all.length} bài · ${state.all.filter((l) => l.completed).length} hoàn thành`;
+  $('playlist-count').textContent = t('{count} bài · {completed} hoàn thành', {
+    count: state.all.length,
+    completed: state.all.filter((l) => l.completed).length,
+  });
   $('playlist').innerHTML = state.all
     .map(
       (l) =>
@@ -193,6 +211,24 @@ const playlistResize = new ResizeObserver(schedulePlaylistReveal);
 playlistResize.observe($('playlist').closest('.playlist'));
 playlistResize.observe(document.querySelector('.playlist-heading'));
 
+function updateWatchText() {
+  const lesson = state.selected;
+  if (!lesson) return;
+  const text = localized(lesson, state.language);
+  const other = localized(lesson, state.language === 'vi' ? 'en' : 'vi');
+  $('watch-title').textContent = text.title;
+  $('watch-description').textContent = text.description;
+  $('watch-subtitle').textContent = other.title;
+  $('watch-chapter').textContent = t('Bài {number} · {chapter}', {
+    number: lesson.number,
+    chapter: lesson.chapter,
+  });
+  $('track-info').textContent = t('Phụ đề có sẵn: {tracks}. Có thể nhập bản dịch SRT/VTT từ máy.', {
+    tracks: lesson.tracks.map((track) => track.label).join(', ') || t('Chưa có'),
+  });
+  $('mark-complete').textContent = lesson.completed ? t('✓ Đã hoàn thành') : t('✓ Hoàn thành');
+}
+
 async function watch(lesson, play = true) {
   if (!lesson) return;
   if (state.selected) state.selected.notes = $('notes').value;
@@ -200,17 +236,10 @@ async function watch(lesson, play = true) {
   $('library-view').hidden = true;
   $('watch-view').hidden = false;
   window.scrollTo({ top: 0, behavior: 'instant' });
-  const text = localized(lesson, state.language);
-  const other = localized(lesson, state.language === 'vi' ? 'en' : 'vi');
-  $('watch-title').textContent = text.title;
-  $('watch-description').textContent = text.description;
-  $('watch-subtitle').textContent = other.title;
-  $('watch-chapter').textContent = `Bài ${lesson.number} · ${lesson.chapter}`;
+  updateWatchText();
   $('notes').value = lesson.notes;
   $('notes-status').textContent = '';
-  $('track-info').textContent =
-    `Phụ đề có sẵn: ${lesson.tracks.map((t) => t.label).join(', ') || 'Chưa có'}. Có thể nhập bản dịch SRT/VTT từ máy.`;
-  $('mark-complete').textContent = lesson.completed ? '✓ Đã hoàn thành' : '✓ Hoàn thành';
+  state.notesDirty = false;
   playlist();
   try {
     await player.open(lesson, play);
@@ -239,7 +268,7 @@ async function chooseLibrary() {
     $('watch-view').hidden = true;
     $('library-view').hidden = false;
     await refresh();
-    notify(`Đã tải ${info.lessons} bài học.`);
+    notify(t('Đã tải {count} bài học.', { count: info.lessons }));
   } catch (e) {
     notify(e);
   }
@@ -252,7 +281,7 @@ $('rescan').onclick = async () => {
     if (!state.root) return chooseLibrary();
     await invoke('open_library', { path: state.root });
     await refresh();
-    notify('Đã cập nhật thư viện.');
+    notify(t('Đã cập nhật thư viện.'));
   } catch (e) {
     notify(e);
   }
@@ -299,6 +328,8 @@ $('chapter-filter').onchange = () => {
 $('display-language').onchange = () => {
   state.language = $('display-language').value;
   render();
+  updateWatchText();
+  playlist();
 };
 document.addEventListener('keydown', (e) => {
   if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
@@ -322,7 +353,9 @@ $('mark-complete').onclick = async () => {
   if (!state.selected) return;
   state.selected.completed = !state.selected.completed;
   await persistNotes();
-  $('mark-complete').textContent = state.selected.completed ? '✓ Đã hoàn thành' : '✓ Hoàn thành';
+  $('mark-complete').textContent = state.selected.completed
+    ? t('✓ Đã hoàn thành')
+    : t('✓ Hoàn thành');
   playlist();
 };
 async function persistNotes() {
@@ -331,16 +364,18 @@ async function persistNotes() {
   lesson.notes = $('notes').value;
   try {
     await player.saveNotes(lesson, lesson.notes);
-    $('notes-status').textContent = 'Đã lưu trên máy.';
+    state.notesDirty = false;
+    $('notes-status').textContent = t('Đã lưu trên máy.');
     updateStats();
   } catch (e) {
-    notify('Không lưu được: ' + e);
+    notify(t('Không lưu được: {error}', { error: localizeError(e) }));
   }
 }
 $('save-notes').onclick = persistNotes;
 $('notes').oninput = () => {
   if (state.selected) state.selected.notes = $('notes').value;
-  $('notes-status').textContent = 'Chưa lưu';
+  state.notesDirty = true;
+  $('notes-status').textContent = t('Chưa lưu');
 };
 $('edit-metadata').onclick = () => {
   const text = localized(state.selected, state.language);
@@ -359,7 +394,7 @@ $('metadata-form').onsubmit = async (e) => {
   e.preventDefault();
   const lesson = state.selected;
   const language = $('edit-language').value.trim();
-  if (!/^[A-Za-z-]{1,20}$/.test(language)) return notify('Mã ngôn ngữ không hợp lệ.');
+  if (!/^[A-Za-z-]{1,20}$/.test(language)) return notify(t('Mã ngôn ngữ không hợp lệ.'));
   const metadata = {
     duration: lesson.duration,
     chapter: lesson.chapter,
@@ -379,7 +414,7 @@ $('metadata-form').onsubmit = async (e) => {
     $('metadata-dialog').close();
     await refresh();
     playlist();
-    notify('Đã lưu tiêu đề và mô tả.');
+    notify(t('Đã lưu tiêu đề và mô tả.'));
   } catch (error) {
     notify(error);
   }
@@ -400,7 +435,7 @@ $('import-subtitle').onclick = async () => {
       state.all.find((l) => l.id === lesson.id),
       false,
     );
-    notify('Đã thêm phụ đề. Chọn ngôn ngữ trong cài đặt trình phát.');
+    notify(t('Đã thêm phụ đề. Chọn ngôn ngữ trong cài đặt trình phát.'));
   } catch (e) {
     notify(e);
   }
@@ -411,6 +446,7 @@ if (appWindow) {
     .onCloseRequested(async (event) => {
       try {
         await player.leave();
+        await player.captions.pendingSave;
       } catch {
         event.preventDefault();
       }
@@ -418,13 +454,32 @@ if (appWindow) {
     .catch(notify);
 }
 
+translateDOM();
+$('app-language').value = getLocale();
+$('app-language').onchange = (event) => setLocale(event.target.value);
+onLocaleChange(() => {
+  $('app-language').value = getLocale();
+  $('toast').hidden = true;
+  if (state.root) $('library-path').textContent = state.root;
+  const selectedChapter = $('chapter-filter').value;
+  chapters();
+  $('chapter-filter').value = selectedChapter;
+  updateStats();
+  render();
+  playlist();
+  updateWatchText();
+  if (!state.root) $('hero-meta').textContent = t('Chọn thư mục files qua nút ⚙ ở góc trái.');
+  if ($('notes-status').textContent)
+    $('notes-status').textContent = t(state.notesDirty ? 'Chưa lưu' : 'Đã lưu trên máy.');
+});
+
 try {
   const info = await invoke('default_library');
   state.root = info.root;
   $('library-path').textContent = info.root;
   await refresh();
 } catch (e) {
-  $('hero-meta').textContent = 'Chọn thư mục files qua nút ⚙ ở góc trái.';
+  $('hero-meta').textContent = t('Chọn thư mục files qua nút ⚙ ở góc trái.');
   $('empty').hidden = false;
   notify(e);
 }

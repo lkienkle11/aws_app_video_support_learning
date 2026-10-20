@@ -1,3 +1,4 @@
+import { t, localizeError, onLocaleChange } from '../../shared/i18n.js';
 import { $, time, spritePosition, escapeHTML } from '../../shared/utils.js';
 import { invoke, asset } from '../../shared/api.js';
 import { Captions } from './captions.js';
@@ -69,13 +70,8 @@ export class Player {
     };
     v.onerror = () => {
       $('video-empty').hidden = false;
-      const reasons = {
-        1: 'Đã hủy tải video.',
-        2: 'Không đọc được video từ thư viện. Kiểm tra đường dẫn và quyền đọc file.',
-        3: 'Không giải mã được video. File có thể hỏng hoặc dùng codec chưa được hỗ trợ.',
-        4: 'WebView không mở được định dạng video này. Cần kiểm tra định dạng thực của file, không chỉ đuôi .mp4.',
-      };
-      $('video-empty').textContent = reasons[v.error?.code] || 'Không mở được video.';
+      this.videoError = v.error?.code || 0;
+      this.renderVideoError();
       this.notify(`${$('video-empty').textContent} ${v.error?.message || ''}`);
     };
     $('previous').onclick = () => this.onNavigate(-1);
@@ -118,7 +114,7 @@ export class Player {
       try {
         await invoke('save_playback_settings', { settings: { autoplay: e.target.checked } });
       } catch (error) {
-        this.notify('Không lưu được cài đặt: ' + error);
+        this.notify(t('Không lưu được cài đặt: {error}', { error: localizeError(error) }));
       }
     };
     $('settings-toggle').onclick = () => {
@@ -127,7 +123,7 @@ export class Player {
     };
     $('captions-toggle').onclick = () => {
       if (!v.textTracks.length)
-        return this.notify('Bài này chưa có phụ đề. Dùng “Thêm phụ đề” để nhập SRT/VTT.');
+        return this.notify(t('Bài này chưa có phụ đề. Dùng “Thêm phụ đề” để nhập SRT/VTT.'));
       this.selectTrack(this.selectedTrack >= 0 ? -1 : 0);
     };
     $('subtitle-language').onchange = (e) => this.selectTrack(Number(e.target.value));
@@ -152,9 +148,9 @@ export class Player {
           v.webkitSetPresentationMode(
             v.webkitPresentationMode === 'picture-in-picture' ? 'inline' : 'picture-in-picture',
           );
-        else this.notify('WebView của hệ điều hành này chưa hỗ trợ hình trong hình.');
+        else this.notify(t('WebView của hệ điều hành này chưa hỗ trợ hình trong hình.'));
       } catch (e) {
-        this.notify('Không bật được hình trong hình: ' + e.message);
+        this.notify(t('Không bật được hình trong hình: {error}', { error: localizeError(e) }));
       }
     };
     $('theater').onclick = () => $('watch-view').classList.toggle('theater-mode');
@@ -197,6 +193,12 @@ export class Player {
       if (e.shiftKey && key === 'n') this.onNavigate(1);
       if (e.shiftKey && key === 'p') this.onNavigate(-1);
     };
+    onLocaleChange(() => {
+      const off = $('subtitle-language').querySelector('option[value="-1"]');
+      if (off) off.textContent = t('Tắt');
+      if (this.videoError !== undefined) this.renderVideoError();
+      this.transcript();
+    });
     $('transcript-search').oninput = () => this.transcript();
     document.addEventListener('visibilitychange', () => {
       if (document.hidden) this.save().catch(() => {});
@@ -205,6 +207,20 @@ export class Player {
       this.endScreen.hide();
       this.save().catch(() => {});
     });
+  }
+  renderVideoError() {
+    const reasons = {
+      1: t('Đã hủy tải video.'),
+      2: t('Không đọc được video từ thư viện. Kiểm tra đường dẫn và quyền đọc file.'),
+      3: t('Không giải mã được video. File có thể hỏng hoặc dùng codec chưa được hỗ trợ.'),
+      4: t(
+        'WebView không mở được định dạng video này. Cần kiểm tra định dạng thực của file, không chỉ đuôi .mp4.',
+      ),
+    };
+    $('video-empty').textContent =
+      typeof this.videoError === 'string'
+        ? localizeError(this.videoError)
+        : reasons[this.videoError] || t('Không mở được video.');
   }
   idle() {
     this.visibility.reveal();
@@ -276,10 +292,11 @@ export class Player {
     this.urls = [];
     this.sprite = null;
     this.cueTimes = new WeakMap();
+    delete this.videoError;
     $('video-empty').hidden = true;
     $('preview-frame').style.backgroundImage = '';
     $('settings').hidden = true;
-    $('subtitle-language').innerHTML = '<option value="-1">Tắt</option>';
+    $('subtitle-language').innerHTML = `<option value="-1">${t('Tắt')}</option>`;
     this.selectedTrack = -1;
     this.offset = 0;
     $('caption-offset').value = 0;
@@ -289,7 +306,8 @@ export class Player {
       source = await asset(lesson.video);
     } catch (error) {
       if (generation !== this.generation) return;
-      $('video-empty').textContent = error.message || String(error);
+      this.videoError = error.message || String(error);
+      this.renderVideoError();
       $('video-empty').hidden = false;
       return;
     }
@@ -328,7 +346,7 @@ export class Player {
         option.textContent = track.label;
         $('subtitle-language').append(option);
       } catch (e) {
-        this.notify(`Phụ đề ${track.label}: ${e.message || e}`);
+        this.notify(t('Phụ đề {label}: {error}', { label: track.label, error: localizeError(e) }));
       }
     }
     if (play && generation === this.generation) this.video.play().catch(() => {});
@@ -352,7 +370,7 @@ export class Player {
           `<button class="cue" data-start="${c.startTime}"><time>${time(c.startTime)}</time><span>${escapeHTML(c.text.replace(/<[^>]*>/g, ''))}</span></button>`,
       )
       .join('');
-    if (!cues.length) $('transcript').textContent = 'Chưa có phụ đề cho bài học này.';
+    if (!cues.length) $('transcript').textContent = t('Chưa có phụ đề cho bài học này.');
     $('transcript')
       .querySelectorAll('.cue')
       .forEach(
@@ -422,7 +440,7 @@ export class Player {
       await pending;
       this.onProgress(lesson);
     } catch (e) {
-      this.notify('Chưa lưu được tiến độ: ' + e);
+      this.notify(t('Chưa lưu được tiến độ: {error}', { error: localizeError(e) }));
       throw e;
     }
   }

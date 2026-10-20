@@ -41,13 +41,17 @@ fn valid_color(value: &str) -> bool {
 
 fn validate_captions(value: &CaptionSettings) -> Result<()> {
     if !value.size.is_finite()
-        || !(12.0..=64.0).contains(&value.size)
+        || !(12.0..=96.0).contains(&value.size)
         || !value.x.is_finite()
         || !(0.0..=1.0).contains(&value.x)
         || !value.y.is_finite()
         || !(0.0..=1.0).contains(&value.y)
         || !valid_color(&value.color)
         || !valid_color(&value.background)
+        || !value.background_width.is_finite()
+        || !(0.0..=3840.0).contains(&value.background_width)
+        || !value.background_height.is_finite()
+        || !(0.0..=2160.0).contains(&value.background_height)
         || !value.opacity.is_finite()
         || !(0.0..=1.0).contains(&value.opacity)
         || !value.background_opacity.is_finite()

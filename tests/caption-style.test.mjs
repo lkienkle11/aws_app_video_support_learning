@@ -1,6 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { captionColors, defaultCaptionSettings } from '../ui/features/player/caption-style.js';
+import {
+  captionColors,
+  captionDimensions,
+  defaultCaptionSettings,
+} from '../ui/features/player/caption-style.js';
 import { Captions } from '../ui/features/player/captions.js';
 
 test('fresh subtitles default to white text and black background at 100%', () => {
@@ -94,11 +98,31 @@ test('preview updates immediately; SQLite writes keep the latest color and alpha
     assert.equal(node('caption-overlay').style.background, 'rgba(116,58,201,0.35)');
     assert.equal(node('caption-opacity-value').textContent, '62%');
     assert.equal(node('caption-background-opacity-value').textContent, '35%');
+    for (const [id, value] of [
+      ['caption-size', '36'],
+      ['caption-background-width', '420'],
+      ['caption-background-height', '96'],
+    ]) {
+      const input = node(id);
+      input.value = value;
+      input.onchange({ target: input });
+    }
+    assert.equal(node('caption-overlay').style.fontSize, '36px');
+    assert.equal(node('caption-overlay').style.width, '420px');
+    assert.equal(node('caption-overlay').style.height, '96px');
+    const width = node('caption-background-width');
+    width.value = '-1';
+    width.validity = { valid: false };
+    width.onchange({ target: width });
+    assert.equal(captions.settings.background_width, 420);
     release();
     await captions.pendingSave;
-    assert.equal(writes.length, 4);
+    assert.equal(writes.length, 7);
     const next = new Captions(assert.fail);
     await next.load();
+    assert.equal(next.settings.size, 36);
+    assert.equal(next.settings.background_width, 420);
+    assert.equal(next.settings.background_height, 96);
     assert.equal(next.settings.color, '#12abef');
     assert.equal(next.settings.background, '#743ac9');
     assert.equal(next.settings.opacity, 0.62);
@@ -111,4 +135,19 @@ test('preview updates immediately; SQLite writes keep the latest color and alpha
       else globalThis[key] = value;
     }
   }
+});
+
+test('subtitle background supports independent fixed dimensions and automatic sizing', () => {
+  assert.deepEqual(captionDimensions(defaultCaptionSettings), {
+    width: 'max-content',
+    height: 'auto',
+  });
+  assert.deepEqual(captionDimensions({ background_width: 420, background_height: 96 }), {
+    width: '420px',
+    height: '96px',
+  });
+  assert.deepEqual(captionDimensions({ background_width: 0, background_height: 80 }), {
+    width: 'max-content',
+    height: '80px',
+  });
 });

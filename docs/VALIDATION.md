@@ -104,3 +104,14 @@ Sau patch, Clippy `--all-targets --locked` và 4 Rust tests qua; native đã đ�
 - 24 Node tests và 5 Rust tests qua trên macOS: gồm đầu/giữa/cuối danh sách, sticky header, kích thước tablet/mobile, hai kênh alpha độc lập, preview và thứ tự ghi SQLite, khởi động lại Service, đọc dữ liệu cũ và từ chối màu/opacity không hợp lệ. `cargo fmt --all -- --check`, Clippy `--all-targets --locked -- -D warnings`, Prettier và `git diff --check` qua.
 - Gói macOS ARM64 mới gồm GUI/core: 5.045.696 byte (<20 MB). Backend macOS peak sampled RSS 17.973.248 byte với 277 bài và toàn bộ phụ đề; số đo workload cục bộ, không suy ra ngân sách RAM cho mọi máy.
 - Không thêm dependency hoặc API riêng một OS cho tính năng này. Chỉ build/chạy macOS trong phiên sửa. Không build/test EXE hoặc Linux trên host này theo yêu cầu. PACKAGING.md có lệnh build native trên máy đích; gate Windows/Linux kiểm tổng executable GUI/core trước khi kiểm installer. Không coi cấu hình CI là bằng chứng runtime trên hai OS chưa chạy.
+
+
+## Cỡ chữ, nền cố định và i18n — 2026-10-20
+
+- Thêm hộp Cài đặt phụ đề riêng, mở từ nút dưới video hoặc menu ⚙. Cỡ chữ 12–96 px; chiều rộng/cao nền cố định độc lập, mỗi chiều 0 là tự động. SQLite lưu kích thước, cỡ chữ cùng vị trí và hai kênh màu/alpha. Dữ liệu cũ thiếu kích thước dùng 0, không bị tự ghi đè khi đọc.
+- Giao diện Việt/Anh dùng catalog nội bộ, gồm nhãn tĩnh, placeholder, tooltip, aria-label, trạng thái động, thông báo, hộp cài đặt và màn hình kết thúc. Lựa chọn nhớ qua localStorage; nội dung khóa học và ngôn ngữ tiêu đề/tìm kiếm/phụ đề độc lập. Không thêm dependency runtime.
+- 28 Node tests và 5 Rust tests qua; fmt, Clippy với warnings-as-errors, kiểm cú pháp JS, HTML ID không trùng và git diff check qua. Kiểm catalog đủ hai ngôn ngữ/cùng tham số, đổi DOM không mất nội dung input, nhớ locale qua reload và storage bị chặn, kích thước nền/preview/ghi nối tiếp, SQLite khởi động lại và giới hạn không hợp lệ.
+- Native macOS ARM64, thư viện thử riêng: chọn 36 px, nền 420 × 96 px, SQLite có đúng giá trị; nền thực tế đúng kích thước. Đóng/mở app rồi mở bài khác, cài đặt vẫn 36/420/96. Bộ chọn English và toàn giao diện vẫn tiếng Anh sau restart. Đổi Việt/Anh khi video phát, thời gian tiếp tục tăng 0:03 → 0:07; ghi chú đang nhập vẫn giữ khi đổi locale.
+- Native kiểm ở 1320 px và 320 px: hộp phụ đề Việt/Anh vừa cửa sổ, nền giới hạn theo video; nội dung dài trong nền thấp cuộn được. Trả cửa sổ và ngôn ngữ tiếng Việt sau QA.
+- Gói macOS trong dist: 5.062.208 byte (<20 MB), đã build lại từ nguồn sửa. Backend peak sampled RSS 10.240.000 byte trên workload 277 bài, tìm kiếm song ngữ và đọc mọi phụ đề; đo cục bộ, không bảo đảm trần RAM cho mọi workload.
+- Hash logical progress/notes/preferences của hai SQLite thật trước/sau QA không thay đổi. Chỉ build/chạy macOS; Windows/Linux cần build native trên máy đích.

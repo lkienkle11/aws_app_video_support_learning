@@ -1,7 +1,8 @@
+import { t, localizeError } from '../../shared/i18n.js';
 import { $ } from '../../shared/utils.js';
 import { invoke } from '../../shared/api.js';
 import { captionGeometry, clamp } from './caption-layout.js';
-import { captionColors, defaultCaptionSettings } from './caption-style.js';
+import { captionColors, captionDimensions, defaultCaptionSettings } from './caption-style.js';
 
 export class Captions {
   constructor(notify) {
@@ -14,21 +15,27 @@ export class Captions {
     this.resize = new ResizeObserver(() => this.layout());
     this.resize.observe(this.frame);
     this.resize.observe($('player-controls'));
+    const openSettings = () => $('caption-settings-dialog').showModal();
+    $('caption-settings-open').onclick = $('caption-settings-access').onclick = openSettings;
+    $('caption-settings-close').onclick = () => $('caption-settings-dialog').close();
     for (const [id, key, parse] of [
       ['caption-size', 'size', Number],
+      ['caption-background-width', 'background_width', Number],
+      ['caption-background-height', 'background_height', Number],
       ['caption-color', 'color', String],
       ['caption-background', 'background', String],
       ['caption-opacity', 'opacity', (value) => Number(value) / 100],
       ['caption-background-opacity', 'background_opacity', (value) => Number(value) / 100],
     ]) {
       const update = (event) => {
+        if (event.target.validity && !event.target.validity.valid) return false;
         this.settings[key] = parse(event.target.value);
         this.apply();
+        return true;
       };
       $(id).oninput = update;
       $(id).onchange = (event) => {
-        update(event);
-        this.save();
+        if (update(event)) this.save();
       };
     }
     $('caption-reset').onclick = () => {
@@ -76,17 +83,19 @@ export class Captions {
       this.pendingSave = (this.pendingSave || Promise.resolve())
         .then(() => invoke('save_caption_settings', { settings }))
         .catch((error) => {
-          this.notify('Không lưu được cài đặt phụ đề: ' + error);
+          this.notify(t('Không lưu được cài đặt phụ đề: {error}', { error: localizeError(error) }));
         });
       await this.pendingSave;
     } catch (error) {
-      this.notify('Không lưu được cài đặt phụ đề: ' + error);
+      this.notify(t('Không lưu được cài đặt phụ đề: {error}', { error: localizeError(error) }));
     }
   }
   apply() {
     this.box.style.fontSize = `${this.settings.size}px`;
-    Object.assign(this.box.style, captionColors(this.settings));
+    Object.assign(this.box.style, captionColors(this.settings), captionDimensions(this.settings));
     $('caption-size').value = this.settings.size;
+    $('caption-background-width').value = this.settings.background_width;
+    $('caption-background-height').value = this.settings.background_height;
     $('caption-color').value = this.settings.color;
     $('caption-background').value = this.settings.background;
     for (const [id, key] of [

@@ -95,8 +95,23 @@ Xem [hướng dẫn đóng gói](PACKAGING.md) để tạo gói còn thiếu. Y�
 
 ## Màu và độ đậm phụ đề
 
-Trong ⚙ của khung video, **Nền phụ đề** có bộ chọn màu nền và thanh **Độ đậm nền** 0–100%; **Chữ phụ đề** có màu chữ và **Độ đậm chữ** riêng. Chọn màu hoặc kéo thanh để xem ngay kết quả; thả thanh/chốt màu để lưu vào SQLite của thư viện. 0% là trong suốt, 100% là hoàn toàn đậm. Mặc định cho thư viện mới: nền đen 100%, chữ trắng 100%.
+Mở **Cài đặt phụ đề** bên dưới video (hoặc ⚙ → **Cài đặt phụ đề…**). **Nền phụ đề** có bộ chọn màu nền và thanh **Độ đậm nền** 0–100%; **Chữ phụ đề** có màu chữ và **Độ đậm chữ** riêng. Chọn màu hoặc kéo thanh để xem ngay kết quả; thả thanh/chốt màu để lưu vào SQLite của thư viện. 0% là trong suốt, 100% là hoàn toàn đậm. Mặc định cho thư viện mới: nền đen 100%, chữ trắng 100%.
 
 Màu/opacity, cỡ và vị trí phụ đề được giữ khi đổi bài hoặc khởi động lại. Cài đặt bản cũ vẫn được đọc: nền “Tối” giữ alpha 80%, “Trong suốt” giữ 0%, màu trắng/vàng và cỡ/vị trí không bị mất.
 
 Danh sách “Nội dung khóa học” tự đưa dòng đang mở vào vùng nhìn thấy dưới tiêu đề cố định. Việc này chỉ cuộn khung danh sách, không kéo cả trang khỏi video; bố cục hẹp cũng giữ lựa chọn trong vùng cuộn của danh sách.
+
+
+## Cỡ chữ và khung nền phụ đề
+
+Trong **Cài đặt phụ đề**, nhập **Cỡ chữ (px)** từ 12 đến 96. **Chiều rộng (px)** và **Chiều cao (px)** điều chỉnh kích thước cố định của nền, độc lập với cỡ chữ: ví dụ 420 × 96 px. Nhập 0 cho từng chiều để chiều đó tự động theo nội dung. Giới hạn rộng 3840 px, cao 2160 px; khi cửa sổ nhỏ, nền được giới hạn vừa video và chừa khoảng cách với thanh điều khiển. Nội dung dài trong khung thấp có thể cuộn.
+
+Thay đổi được xem ngay; chốt giá trị/rời ô để lưu. Cỡ chữ, kích thước nền, màu, độ đậm và vị trí kéo đều được lưu vào SQLite của thư viện; giữ qua đổi bài và khởi động lại. Dữ liệu cũ thiếu kích thước nền sẽ dùng chế độ tự động.
+
+## Ngôn ngữ ứng dụng
+
+Bộ chọn **Ngôn ngữ ứng dụng / Application language** ở thanh đầu trang chuyển toàn bộ giao diện giữa **Tiếng Việt** và **English**: điều hướng, tìm kiếm, trình phát, cài đặt phụ đề, hộp sửa mô tả, trạng thái và thông báo. Đổi ngay khi đang học, không tải lại video hoặc xóa ghi chú đang nhập. Lựa chọn được nhớ trong localStorage của WebView trên máy này; lần đầu mặc định tiếng Việt.
+
+Ngôn ngữ giao diện độc lập với bộ chọn **Ngôn ngữ tiêu đề**, **Ngôn ngữ tìm kiếm** và ngôn ngữ phụ đề. Tiêu đề, mô tả, tên chương, ghi chú và nội dung phụ đề là dữ liệu khóa học; không tự dịch khi đổi ngôn ngữ giao diện. Menu/hộp thoại tiêu chuẩn của hệ điều hành vẫn theo ngôn ngữ của hệ điều hành.
+
+Để thêm ngôn ngữ giao diện, bổ sung locale vào `ui/shared/i18n.js` và bản dịch trong `ui/shared/locales/messages.js`, rồi thêm lựa chọn trong `ui/index.html`. `npm test` kiểm tra đủ bản dịch và cùng tham số giữa các locale.

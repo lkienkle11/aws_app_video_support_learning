@@ -33,7 +33,7 @@ fn library_paths_subtitles_and_edits_are_validated() {
         .dispatch("load_caption_settings", json!({}))
         .unwrap();
     assert_eq!(defaults["x"], 0.5);
-    let settings = json!({"size":32.0,"x":0.3,"y":0.7,"color":"#ffffff","background":"#000000","opacity":0.65,"background_opacity":0.0});
+    let settings = json!({"size":32.0,"x":0.3,"y":0.7,"color":"#ffffff","background":"#000000","opacity":0.65,"background_opacity":0.0,"background_width":0.0,"background_height":0.0});
     service
         .dispatch("save_caption_settings", json!({"settings":settings}))
         .unwrap();
@@ -157,7 +157,7 @@ fn caption_colors_and_independent_opacities_survive_restart() {
     assert_eq!(defaults["background"], "#000000");
     assert_eq!(defaults["opacity"], 1.0);
     assert_eq!(defaults["background_opacity"], 1.0);
-    let settings = json!({"size":32.0,"x":0.3,"y":0.7,"color":"#12abef","background":"#743ac9","opacity":0.62,"background_opacity":0.35});
+    let settings = json!({"size":32.0,"x":0.3,"y":0.7,"color":"#12abef","background":"#743ac9","opacity":0.62,"background_opacity":0.35,"background_width":420.0,"background_height":96.0});
     service
         .dispatch("save_caption_settings", json!({"settings":settings}))
         .unwrap();
@@ -173,6 +173,12 @@ fn caption_colors_and_independent_opacities_survive_restart() {
         settings
     );
     for (key, value) in [
+        ("size", json!(11)),
+        ("size", json!(97)),
+        ("background_width", json!(-1)),
+        ("background_width", json!(3841)),
+        ("background_height", json!(-1)),
+        ("background_height", json!(2161)),
         ("opacity", json!(-0.01)),
         ("opacity", json!(1.01)),
         ("background_opacity", json!(-1)),
@@ -221,6 +227,8 @@ fn caption_colors_and_independent_opacities_survive_restart() {
         assert_eq!(loaded["background_opacity"], alpha);
         assert_eq!(loaded["opacity"], 1.0);
         assert_eq!(loaded["size"], 40.0);
+        assert_eq!(loaded["background_width"], 0.0);
+        assert_eq!(loaded["background_height"], 0.0);
         assert_eq!(loaded["x"], 0.25);
         assert_eq!(loaded["y"], 0.6);
         let stored: String = db
