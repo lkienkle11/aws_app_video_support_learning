@@ -12,6 +12,7 @@ import { PreferenceStore, workspaceDefaults } from '../../shared/preferences.js'
 import { installCloseGuard } from '../../shared/window-lifecycle.js';
 import { Player } from '../player/player.js';
 import { revealActiveLesson } from './playlist-scroll.js';
+import { matchesLessonMode, syncLibraryNavigation } from './navigation.js';
 
 const state = {
   all: [],
@@ -115,6 +116,7 @@ const player = new Player({
     const result = state.results.findIndex((l) => l.id === lesson.id);
     if (result >= 0) state.results[result] = lesson;
     if (!$('library-view').hidden) updateStats();
+    else syncLibraryNavigation(state.mode, state.all);
     $('playlist-count').textContent = t('{count} bài · {completed} hoàn thành', {
       count: state.all.length,
       completed: state.all.filter((l) => l.completed).length,
@@ -139,7 +141,7 @@ function updateStats() {
   const count = state.all.length;
   const completed = state.all.filter((l) => l.completed).length;
   const percent = count ? Math.round((completed / count) * 100) : 0;
-  $('nav-count').textContent = count;
+  syncLibraryNavigation(state.mode, state.all);
   $('stat-lessons').textContent = count;
   $('stat-completed').textContent = completed;
   $('stat-progress').textContent = percent + '%';
@@ -216,12 +218,10 @@ async function search() {
   }
 }
 function render() {
+  syncLibraryNavigation(state.mode, state.all);
   const chapter = $('chapter-filter').value;
   const lessons = state.results.filter(
-    (l) =>
-      (!chapter || l.chapter === chapter) &&
-      (state.mode === 'all' ||
-        (state.mode === 'completed' ? l.completed : l.position > 0 && !l.completed)),
+    (l) => (!chapter || l.chapter === chapter) && matchesLessonMode(l, state.mode),
   );
   $('result-count').textContent = lessons.length;
   $('empty').hidden = lessons.length > 0;
