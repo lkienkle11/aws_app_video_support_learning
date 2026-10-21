@@ -288,14 +288,6 @@ export const messages = {
     vi: 'Lặp lại video',
     en: 'Loop video',
   },
-  'Kéo phụ đề để di chuyển · lưu trong SQLite': {
-    vi: 'Kéo phụ đề để di chuyển · lưu trong SQLite',
-    en: 'Drag subtitles to move · saved in SQLite',
-  },
-  'MP4 gốc · không chuyển đổi chất lượng': {
-    vi: 'MP4 gốc · không chuyển đổi chất lượng',
-    en: 'Original MP4 · no quality conversion',
-  },
   '✓ Hoàn thành': {
     vi: '✓ Hoàn thành',
     en: '✓ Mark complete',

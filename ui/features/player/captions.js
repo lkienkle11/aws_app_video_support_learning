@@ -135,14 +135,19 @@ export class Captions {
       height: this.frame.clientHeight,
       boxWidth: this.box.offsetWidth,
       boxHeight: this.box.offsetHeight,
-      controlsHeight: $('player-controls').offsetHeight,
+      controlsHeight: this.controlsHeight(),
       visible: this.controlsVisible,
       x: this.settings.x,
       y: this.settings.y,
     });
   }
+  controlsHeight() {
+    const controls = $('player-controls');
+    // The fade above the seek row is decorative, not part of the control bar.
+    return controls.offsetHeight - controls.querySelector('.seek-row').offsetTop;
+  }
   layout() {
-    const base = this.controlsVisible ? $('player-controls').offsetHeight + 10 : 10;
+    const base = this.controlsVisible ? this.controlsHeight() + 10 : 10;
     this.box.style.maxHeight = `${Math.max(12, this.frame.clientHeight - base - 8)}px`;
     const { left, bottom } = this.geometry();
     this.box.style.left = `${left}px`;

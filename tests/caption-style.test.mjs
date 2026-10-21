@@ -48,6 +48,7 @@ test('preview updates immediately; SQLite writes keep the latest color and alpha
         clientHeight: 360,
         offsetWidth: 200,
         offsetHeight: id === 'player-controls' ? 64 : 40,
+        querySelector: () => ({ offsetTop: 25 }),
       });
     return nodes.get(id);
   };
@@ -76,6 +77,16 @@ test('preview updates immediately; SQLite writes keep the latest color and alpha
   try {
     const captions = new Captions(assert.fail);
     await captions.load();
+    captions.controlsVisible = true;
+    captions.layout();
+    assert.equal(
+      node('caption-overlay').style.bottom,
+      '49px',
+      '10px above seek row, excluding fade padding',
+    );
+    captions.controlsVisible = false;
+    captions.layout();
+    assert.equal(node('caption-overlay').style.bottom, '10px');
     const color = node('caption-color');
     color.value = '#12abef';
     color.oninput({ target: color });
@@ -110,6 +121,23 @@ test('preview updates immediately; SQLite writes keep the latest color and alpha
     assert.equal(node('caption-overlay').style.fontSize, '36px');
     assert.equal(node('caption-overlay').style.width, '420px');
     assert.equal(node('caption-overlay').style.height, '96px');
+    const writeCount = writes.length;
+    for (const [width, height] of [
+      [1280, 720], // Theater.
+      [1440, 900], // Fullscreen with letterboxing.
+      [1920, 600], // Wide frame.
+      [320, 400], // Narrow window.
+      [640, 360], // Return to inline.
+    ]) {
+      Object.assign(node('player'), { clientWidth: width, clientHeight: height });
+      captions.layout();
+      assert.equal(node('caption-overlay').style.fontSize, '36px');
+      assert.equal(node('caption-size').value, 36);
+      assert.equal(captions.settings.size, 36);
+      assert.equal(node('caption-overlay').style.width, '420px');
+      assert.equal(node('caption-overlay').style.height, '96px');
+    }
+    assert.equal(writes.length, writeCount, 'resizing never persists a derived font size');
     const width = node('caption-background-width');
     width.value = '-1';
     width.validity = { valid: false };

@@ -65,6 +65,8 @@
   pointer-events: auto;
 }
 .caption-overlay {
+  -webkit-text-size-adjust: none;
+  text-size-adjust: none;
   width: max-content;
   overflow-y: auto;
   position: absolute;

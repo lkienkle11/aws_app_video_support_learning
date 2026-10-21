@@ -104,7 +104,7 @@ Danh sách “Nội dung khóa học” tự đưa dòng đang mở vào vùng n
 
 ## Cỡ chữ và khung nền phụ đề
 
-Trong **Cài đặt phụ đề**, nhập **Cỡ chữ (px)** từ 12 đến 96. **Chiều rộng (px)** và **Chiều cao (px)** điều chỉnh kích thước cố định của nền, độc lập với cỡ chữ: ví dụ 420 × 96 px. Nhập 0 cho từng chiều để chiều đó tự động theo nội dung. Giới hạn rộng 3840 px, cao 2160 px; khi cửa sổ nhỏ, nền được giới hạn vừa video và chừa khoảng cách với thanh điều khiển. Nội dung dài trong khung thấp có thể cuộn.
+Trong **Cài đặt phụ đề**, nhập **Cỡ chữ (px)** từ 12 đến 96. Cùng một giá trị giữ nguyên cỡ chữ khi đổi kích thước cửa sổ, theater hoặc toàn màn hình. **Chiều rộng (px)** và **Chiều cao (px)** điều chỉnh kích thước cố định của nền, độc lập với cỡ chữ: ví dụ 420 × 96 px. Nhập 0 cho từng chiều để chiều đó tự động theo nội dung. Giới hạn rộng 3840 px, cao 2160 px; khi cửa sổ nhỏ, nền được giới hạn vừa video và chừa khoảng cách với thanh điều khiển. Nội dung dài trong khung thấp có thể cuộn.
 
 Thay đổi được xem ngay; chốt giá trị/rời ô để lưu. Cỡ chữ, kích thước nền, màu, độ đậm và vị trí kéo đều được lưu vào SQLite của thư viện; giữ qua đổi bài và khởi động lại. Dữ liệu cũ thiếu kích thước nền sẽ dùng chế độ tự động.
 
