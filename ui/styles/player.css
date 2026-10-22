@@ -609,3 +609,15 @@ dialog form > div {
     padding: 14px;
   }
 }
+
+/* Keep wheel/touch scrolling inside the active modal, including at its edges. */
+html:has(dialog[open]),
+body:has(dialog[open]) {
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+dialog {
+  max-height: 88vh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
