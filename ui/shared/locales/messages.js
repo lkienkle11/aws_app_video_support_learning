@@ -1,4 +1,21 @@
 export const messages = {
+  'Cài đặt phóng to video…': { vi: 'Cài đặt phóng to video…', en: 'Video zoom settings\u2026' },
+  'Phóng to video': { vi: 'Phóng to video', en: 'Video zoom' },
+  Touchpad: { vi: 'Touchpad', en: 'Touchpad' },
+  'Chuột và bàn phím': { vi: 'Chuột và bàn phím', en: 'Mouse and keyboard' },
+  'Chụm/mở hai ngón để thu/phóng; rê hai ngón hoặc kéo chuột để di chuyển.': {
+    vi: 'Chụm/mở hai ngón để thu/phóng; rê hai ngón hoặc kéo chuột để di chuyển.',
+    en: 'Pinch to zoom; scroll with two fingers or drag to pan.',
+  },
+  'Ctrl + cuộn lên/xuống để phóng/thu; Ctrl + kéo chuột trái để di chuyển.': {
+    vi: 'Ctrl + cuộn lên/xuống để phóng/thu; Ctrl + kéo chuột trái để di chuyển.',
+    en: 'Ctrl + scroll up/down to zoom in/out; Ctrl + left-drag to pan.',
+  },
+  'Di chuyển cửa sổ': { vi: 'Di chuyển cửa sổ', en: 'Move window' },
+  'Trở về cửa sổ chính': { vi: 'Trở về cửa sổ chính', en: 'Return to main window' },
+  'Tua lùi {seconds} giây': { vi: 'Tua lùi {seconds} giây', en: 'Seek backward {seconds} seconds' },
+  'Tua tới {seconds} giây': { vi: 'Tua tới {seconds} giây', en: 'Seek forward {seconds} seconds' },
+
   'Invalid playback settings': {
     vi: 'Cài đặt phát video không hợp lệ',
     en: 'Invalid playback settings',

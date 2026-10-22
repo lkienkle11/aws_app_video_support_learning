@@ -132,3 +132,19 @@ Thanh loa điều chỉnh 0–100% âm lượng video. Trong ⚙ của trình ph
 SQLite trong thư mục thư viện lưu tốc độ phát, lặp video, tự phát bài tiếp, lựa chọn ngôn ngữ phụ đề (kể cả tắt), âm thanh và toàn bộ kiểu chữ/nền/vị trí phụ đề. Độ lệch thời gian phụ đề được lưu riêng theo từng bài. Ngôn ngữ giao diện, ngôn ngữ tiêu đề, từ khóa và bộ lọc tìm kiếm, chương, chế độ danh sách, theater, tab nội dung, mã ngôn ngữ nhập phụ đề và từ khóa transcript cũng được khôi phục từ SQLite. Mỗi thư viện có cài đặt riêng.
 
 Các thay đổi được gom ghi sau 150 ms; đổi bài, đổi thư viện và đóng cửa sổ/thoát ứng dụng chờ ghi xong. Giá trị cỡ chữ/nền đang xem trước cũng được ghi khi đóng dù chưa rời ô. Nếu ghi lỗi, ứng dụng thông báo và giữ cửa sổ để thử lại. Force Quit hoặc mất điện có thể mất thay đổi chưa ghi. Fullscreen và Picture in Picture là trạng thái tạm thời của hệ điều hành, không tự bật lại khi mở ứng dụng.
+
+
+## Phóng to và di chuyển hình video
+
+Trong ⚙ của trình phát → **Cài đặt phóng to video…**, hai công tắc độc lập cho phép bật/tắt **Touchpad** và **Chuột và bàn phím**. Mặc định bật cả hai. Lựa chọn được ghi vào SQLite của thư viện qua cùng luồng lưu cài đặt phát; giữ qua đổi bài và mở lại app.
+
+- Touchpad: chụm/mở hai ngón để thu/phóng; khi đã phóng to, rê hai ngón hoặc kéo bằng chuột trái để dịch hình.
+- Chuột và bàn phím: giữ Ctrl và cuộn lên/xuống để phóng/thu; giữ Ctrl và kéo chuột trái để dịch hình.
+- Hình được phóng từ **100% đến 400%** so với kích thước vừa khung ban đầu. Thu về 100% đưa hình về giữa; kéo được giới hạn theo mép hình. Phụ đề, thanh điều khiển và toàn bộ giao diện giữ kích thước riêng.
+- Mức phóng và tọa độ chỉ nằm trong RAM, giữ khi chuyển giữa cửa sổ thường, toàn màn hình và PiP; đặt lại khi đổi bài/rời player hoặc đóng app. Tắt cả hai cách thao tác cũng đưa hình về 100%. Không ghi mức phóng/tọa độ vào SQLite hoặc browser storage.
+
+Nút **Hình trong hình** mở chế độ cửa sổ nổi của Cloud Study, luôn ở trên các cửa sổ khác, dùng cùng video và phụ đề. Đây là chế độ cửa sổ của app, thay cho PiP video của hệ điều hành để hỗ trợ zoom/pan và phụ đề tùy chỉnh; cửa sổ chính chuyển thành cửa sổ nổi trong thời gian này. Rê chuột để hiện thanh điều khiển; kéo nút ⠿ để di chuyển cửa sổ; bấm ↗ hoặc nút PiP để trở lại kích thước/vị trí cửa sổ trước đó. Không tạo video/canvas hay bộ giải mã thứ hai.
+
+Trên WebKit, pinch dùng sự kiện gesture; trên WebView phát pinch qua wheel, pinch được nhận diện nhờ Ctrl tổng hợp không kèm phím Control vật lý. Ctrl + wheel dùng trạng thái phím Control vật lý. Cần nghiệm thu gesture thật trên từng OS/thiết bị; bài test WebKit tự động kiểm tra luồng sự kiện và DOM, không thay thế thao tác touchpad vật lý.
+
+Khi tua bằng ←/→ (5 giây), J/L (10 giây), phản hồi nhỏ có mũi tên hiện bên trái khi lùi và bên phải khi tới, rồi ẩn sau 600 ms.

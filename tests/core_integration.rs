@@ -367,6 +367,8 @@ fn every_preference_survives_restart_and_libraries_are_isolated() {
     assert_eq!(legacy["autoplay"], false);
     assert_eq!(legacy["volume"], 1.0);
     assert_eq!(legacy["audio_boost"], 1.0);
+    assert_eq!(legacy["zoom_touchpad"], true);
+    assert_eq!(legacy["zoom_mouse"], true);
     let raw: String = db
         .query_row(
             "SELECT value FROM preferences WHERE key='playback'",
@@ -375,7 +377,7 @@ fn every_preference_survives_restart_and_libraries_are_isolated() {
         )
         .unwrap();
     assert_eq!(raw, "{\"autoplay\":false}");
-    let playback = json!({"autoplay":false,"volume":0.4,"muted":true,"last_volume":0.6,"audio_boost":2.0,"speed":1.5,"repeat":true,"subtitle_language":"vi"});
+    let playback = json!({"autoplay":false,"volume":0.4,"muted":true,"last_volume":0.6,"audio_boost":2.0,"speed":1.5,"repeat":true,"subtitle_language":"vi","zoom_touchpad":false,"zoom_mouse":true});
     let workspace = json!({"locale":"en","display_language":"en","search_language":"vi","search_field":"description","query":"bao mat","chapter":"IAM","mode":"progress","theater":true,"active_tab":"notes","import_language":"ja","transcript_query":"policy"});
     for (command, value) in [
         ("save_playback_settings", playback.clone()),
@@ -498,4 +500,52 @@ fn every_preference_survives_restart_and_libraries_are_isolated() {
             .unwrap(),
         workspace
     );
+}
+
+#[test]
+fn zoom_input_options_are_independent_and_transient_geometry_is_not_persisted() {
+    let root = tempfile::tempdir().unwrap();
+    fs::write(root.path().join("001-Test.mp4"), []).unwrap();
+    for touchpad in [false, true] {
+        for mouse in [false, true] {
+            let mut service = Service::default();
+            service
+                .dispatch("open_library", json!({"path":root.path()}))
+                .unwrap();
+            service
+                .dispatch(
+                    "save_playback_settings",
+                    json!({"settings": {
+                        "zoom_touchpad": touchpad, "zoom_mouse": mouse,
+                        "scale": 3.0, "x": 120, "y": -60
+                    }}),
+                )
+                .unwrap();
+            drop(service);
+            let mut reopened = Service::default();
+            reopened
+                .dispatch("open_library", json!({"path":root.path()}))
+                .unwrap();
+            let value = reopened
+                .dispatch("load_playback_settings", json!({}))
+                .unwrap();
+            assert_eq!(value["zoom_touchpad"], touchpad);
+            assert_eq!(value["zoom_mouse"], mouse);
+            let db = rusqlite::Connection::open(root.path().join("cloud-study.sqlite")).unwrap();
+            let raw: String = db
+                .query_row(
+                    "SELECT value FROM preferences WHERE key='playback'",
+                    [],
+                    |row| row.get(0),
+                )
+                .unwrap();
+            let stored: serde_json::Value = serde_json::from_str(&raw).unwrap();
+            for key in ["scale", "x", "y"] {
+                assert!(
+                    stored.get(key).is_none(),
+                    "transient geometry persisted: {key}"
+                );
+            }
+        }
+    }
 }

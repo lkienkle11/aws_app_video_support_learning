@@ -37,6 +37,8 @@ test('coalesced writes serialize full settings; reopening restores every field',
     speed: 1.5,
     repeat: true,
     subtitle_language: 'vi',
+    zoom_touchpad: true,
+    zoom_mouse: true,
   });
 });
 test('lesson writes finish with original ID before loading another lesson; failed writes can retry', async () => {

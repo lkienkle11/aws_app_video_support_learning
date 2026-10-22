@@ -1,4 +1,5 @@
 //! WebView host. Business logic and SQLite live in the isolated core process.
+mod mini_player;
 use serde_json::{json, Value};
 use std::{
     io::{BufRead, BufReader, Write},
@@ -91,6 +92,10 @@ fn backend(
     command: String,
     args: Value,
 ) -> Result<Value> {
+    if command == "mini_player" {
+        mini_player::set(&app, args["active"].as_bool().ok_or("Missing active")?)?;
+        return Ok(Value::Null);
+    }
     if command == "ui_ready" {
         state.1.store(true, Ordering::Relaxed);
         return Ok(Value::Null);
@@ -131,6 +136,7 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .setup(|app| {
+            app.manage(mini_player::MiniPlayer::default());
             app.manage(Backend(Mutex::new(Core::start()?), AtomicBool::new(false)));
             // Optional compact desktop size, also used for native responsive QA.
             if let Ok(value) = std::env::var("CLOUD_STUDY_WINDOW_SIZE") {

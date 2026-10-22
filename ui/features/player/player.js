@@ -7,6 +7,7 @@ import { Captions } from './captions.js';
 import { EndScreen } from './end-screen.js';
 import { resumePosition } from './playback-policy.js';
 import { ControlsVisibility } from './controls-visibility.js';
+import { VideoZoom } from './video-zoom.js';
 
 export class Player {
   constructor({ notify, onProgress, onNavigate, getNextTitle = () => null }) {
@@ -42,8 +43,26 @@ export class Player {
       if (!visible) $('seek-preview').hidden = true;
     });
     const v = this.video;
+    this.zoom = new VideoZoom($('player'), v);
+    $('zoom-settings-open').onclick = () => {
+      $('settings').hidden = true;
+      $('player').append($('zoom-settings-dialog'));
+      $('zoom-settings-dialog').showModal();
+    };
+    $('zoom-settings-close').onclick = () => $('zoom-settings-dialog').close();
+    for (const id of ['zoom-touchpad', 'zoom-mouse'])
+      $(id).onchange = () => {
+        this.zoom.configure({
+          zoom_touchpad: $('zoom-touchpad').checked,
+          zoom_mouse: $('zoom-mouse').checked,
+        });
+        this.savePlayback();
+      };
     $('play').onclick = $('center-play').onclick = () => this.toggle();
     v.onclick = () => this.toggle();
+    $('player').addEventListener('click', (event) => {
+      if (event.target === $('player')) this.toggle();
+    });
     v.ondblclick = () => this.fullscreen();
     v.onplay = () => {
       if (v.paused || v.ended) return;
@@ -159,18 +178,13 @@ export class Player {
       e.target.value = offset;
       this.transcript();
     };
-    $('pip').onclick = async () => {
-      try {
-        if (document.pictureInPictureElement) await document.exitPictureInPicture();
-        else if (v.requestPictureInPicture) await v.requestPictureInPicture();
-        else if (v.webkitSetPresentationMode)
-          v.webkitSetPresentationMode(
-            v.webkitPresentationMode === 'picture-in-picture' ? 'inline' : 'picture-in-picture',
-          );
-        else this.notify(t('WebView của hệ điều hành này chưa hỗ trợ hình trong hình.'));
-      } catch (e) {
-        this.notify(t('Không bật được hình trong hình: {error}', { error: localizeError(e) }));
-      }
+    $('pip').onclick = () => this.toggleMiniPlayer();
+    $('mini-return').onclick = () => this.toggleMiniPlayer();
+    $('mini-drag').onpointerdown = () => {
+      window.__TAURI__?.window
+        .getCurrentWindow()
+        .startDragging()
+        .catch((e) => this.notify(e.message));
     };
     $('theater').onclick = () => {
       const theater = $('watch-view').classList.toggle('theater-mode');
@@ -244,12 +258,17 @@ export class Player {
     $('speed').value = settings.speed;
     $('loop').checked = settings.repeat;
     $('audio-boost').value = settings.audio_boost;
+    $('zoom-touchpad').checked = settings.zoom_touchpad;
+    $('zoom-mouse').checked = settings.zoom_mouse;
+    this.zoom.configure(settings);
     this.volumeUI();
     this.restoringSettings = false;
   }
   savePlayback() {
     if (!this.playback.loaded || this.restoringSettings) return;
     this.playback.update({
+      zoom_touchpad: $('zoom-touchpad').checked,
+      zoom_mouse: $('zoom-mouse').checked,
       autoplay: $('autoplay').checked,
       volume: this.audio.volume,
       muted: this.audio.muted,
@@ -302,6 +321,8 @@ export class Player {
     $('player').focus();
   }
   async leave() {
+    if (this.miniPlayer) await this.toggleMiniPlayer();
+    this.zoom?.reset();
     this.generation++;
     this.endScreen.hide();
     this.video.pause();
@@ -337,10 +358,37 @@ export class Player {
       0,
       Math.min(this.video.duration, this.video.currentTime + seconds),
     );
-    $('seek-feedback').textContent = `${seconds > 0 ? '+' : ''}${seconds}s`;
+    const feedback = $('seek-feedback');
+    feedback.dataset.direction = seconds < 0 ? 'backward' : 'forward';
+    $('seek-feedback-icon').textContent = seconds < 0 ? '❮❮' : '❯❯';
+    $('seek-feedback-time').textContent = `${Math.abs(seconds)}s`;
+    feedback.setAttribute(
+      'aria-label',
+      t(seconds < 0 ? 'Tua lùi {seconds} giây' : 'Tua tới {seconds} giây', {
+        seconds: Math.abs(seconds),
+      }),
+    );
     $('seek-feedback').hidden = false;
     clearTimeout(this.feedbackTimer);
     this.feedbackTimer = setTimeout(() => ($('seek-feedback').hidden = true), 600);
+  }
+  async toggleMiniPlayer() {
+    if (this.changingMiniPlayer) return;
+    this.changingMiniPlayer = true;
+    try {
+      if (document.fullscreenElement) await document.exitFullscreen();
+      const active = !this.miniPlayer;
+      await invoke('mini_player', { active });
+      this.miniPlayer = active;
+      document.body.classList.toggle('mini-player', active);
+      $('mini-toolbar').hidden = !active;
+      $('pip').setAttribute('aria-pressed', String(active));
+      this.idle();
+    } catch (e) {
+      this.notify(t('Không bật được hình trong hình: {error}', { error: localizeError(e) }));
+    } finally {
+      this.changingMiniPlayer = false;
+    }
   }
   async fullscreen() {
     try {
@@ -353,6 +401,7 @@ export class Player {
   }
   async open(lesson, play = true) {
     const generation = ++this.generation;
+    this.zoom?.reset();
     this.endScreen.hide();
     this.video.pause();
     await this.save();

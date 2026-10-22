@@ -65,6 +65,8 @@ export const playbackDefaults = {
   speed: 1,
   repeat: false,
   subtitle_language: 'auto',
+  zoom_touchpad: true,
+  zoom_mouse: true,
 };
 export const workspaceDefaults = {
   locale: null,

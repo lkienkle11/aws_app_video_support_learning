@@ -5,11 +5,22 @@ import WebKit
 
 let root = URL(fileURLWithPath: CommandLine.arguments[1])
 let tone = URL(fileURLWithPath: CommandLine.arguments[2])
+let driver = CommandLine.arguments.count > 3 ? CommandLine.arguments[3] : "tests/native/captions-webkit.mjs"
+let benchmarking = driver.hasSuffix("zoom-performance.mjs")
 final class Harness: NSObject, WKURLSchemeHandler, WKScriptMessageHandler {
     func userContentController(_ controller: WKUserContentController, didReceive message: WKScriptMessage) {
         print(message.body)
         fflush(stdout)
-        exit((message.body as? String)?.contains("\"passed\":true") == true ? 0 : 1)
+        let body = (message.body as? String) ?? ""
+        if benchmarking {
+            if body.contains("\"passed\":") { exit(body.contains("\"passed\":true") ? 0 : 1) }
+            if let data = body.data(using: .utf8), let object = try? JSONSerialization.jsonObject(with: data) as? [String:Any] {
+                if let size = object["resize"] as? [Double] { window.setContentSize(NSSize(width:size[0],height:size[1])) }
+                if object["fullscreen"] as? Bool == true { window.toggleFullScreen(nil) }
+            }
+        } else {
+            exit(body.contains("\"passed\":true") ? 0 : 1)
+        }
     }
     func webView(_ webView: WKWebView, start task: WKURLSchemeTask) {
         let url = task.request.url!
@@ -20,7 +31,15 @@ final class Harness: NSObject, WKURLSchemeHandler, WKScriptMessageHandler {
             data = Data(html.replacingOccurrences(of: "<script type=\"module\" src=\"features/library/controller.js\"></script>", with: "<script type=\"module\" src=\"/qa.mjs\"></script>").utf8)
             type = "text/html"
         } else if url.path == "/qa.mjs" {
-            data = try! Data(contentsOf: root.appendingPathComponent("tests/native/captions-webkit.mjs")); type = "text/javascript"
+            data = try! Data(contentsOf: root.appendingPathComponent(driver)); type = "text/javascript"
+        } else if url.path == "/features/player/video-zoom-reference.js", let fixture = ProcessInfo.processInfo.environment["CLOUD_STUDY_ZOOM_REFERENCE"] {
+            let path = root.appendingPathComponent(fixture).standardizedFileURL
+            guard path.path.hasPrefix(root.path + "/") else { task.didFailWithError(NSError(domain:"QA",code:403)); return }
+            data = try! Data(contentsOf:path); type = "text/javascript"
+        } else if url.path == "/features/player/video-zoom.js", let fixture = ProcessInfo.processInfo.environment["CLOUD_STUDY_ZOOM_MODULE"] {
+            let path = root.appendingPathComponent(fixture).standardizedFileURL
+            guard path.path.hasPrefix(root.path + "/") else { task.didFailWithError(NSError(domain:"QA",code:403)); return }
+            data = try! Data(contentsOf:path); type = "text/javascript"
         } else if url.scheme == "asset" {
             data = try! Data(contentsOf: tone); type = "video/mp4"
         } else {
@@ -55,9 +74,16 @@ config.setURLSchemeHandler(handler, forURLScheme:"tauri")
 config.setURLSchemeHandler(handler, forURLScheme:"asset")
 config.userContentController.add(handler, name:"result")
 let view = WKWebView(frame:NSRect(x:0,y:0,width:1440,height:900),configuration:config)
-let window = NSWindow(contentRect:view.frame,styleMask:[.titled],backing:.buffered,defer:false)
+let window = NSWindow(contentRect:view.frame,styleMask: benchmarking ? [.titled,.closable,.miniaturizable,.resizable] : [.titled],backing:.buffered,defer:false)
 window.contentView = view
 window.orderFrontRegardless()
+if benchmarking || driver.hasSuffix("zoom-webkit.mjs") {
+    window.level = .floating
+    app.setActivationPolicy(.regular)
+    window.makeKeyAndOrderFront(nil)
+    window.makeFirstResponder(view)
+    app.activate(ignoringOtherApps: true)
+}
 view.load(URLRequest(url:URL(string:"tauri://localhost/index.html")!))
-DispatchQueue.main.asyncAfter(deadline:.now()+25) { print("{\"passed\":false,\"error\":\"timeout\"}"); exit(1) }
+DispatchQueue.main.asyncAfter(deadline:.now() + (benchmarking ? 600 : 25)) { print("{\"passed\":false,\"error\":\"timeout\"}"); exit(1) }
 app.run()

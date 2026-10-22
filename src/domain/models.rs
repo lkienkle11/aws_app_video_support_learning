@@ -80,6 +80,8 @@ pub struct PlaybackSettings {
     pub speed: f64,
     pub repeat: bool,
     pub subtitle_language: String,
+    pub zoom_touchpad: bool,
+    pub zoom_mouse: bool,
 }
 impl Default for PlaybackSettings {
     fn default() -> Self {
@@ -92,6 +94,8 @@ impl Default for PlaybackSettings {
             speed: 1.0,
             repeat: false,
             subtitle_language: "auto".into(),
+            zoom_touchpad: true,
+            zoom_mouse: true,
         }
     }
 }

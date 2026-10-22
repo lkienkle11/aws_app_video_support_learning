@@ -277,7 +277,28 @@
                     </div>
                   </div>
                 </section>
-                <div id="seek-feedback" class="seek-feedback" hidden></div>
+                <div id="seek-feedback" class="seek-feedback" role="status" hidden>
+                  <span id="seek-feedback-icon" aria-hidden="true"></span>
+                  <span id="seek-feedback-time"></span>
+                </div>
+                <div id="mini-toolbar" class="mini-toolbar" hidden>
+                  <button
+                    id="mini-drag"
+                    type="button"
+                    title="Di chuyển cửa sổ"
+                    data-i18n-title="Di chuyển cửa sổ"
+                  >
+                    ⠿
+                  </button>
+                  <button
+                    id="mini-return"
+                    type="button"
+                    title="Trở về cửa sổ chính"
+                    data-i18n-title="Trở về cửa sổ chính"
+                  >
+                    ↗
+                  </button>
+                </div>
                 <div class="player-controls" id="player-controls">
                   <div class="seek-row">
                     <input
@@ -378,6 +399,9 @@
                     </select></label
                   ><button id="caption-settings-open" type="button" data-i18n="Cài đặt phụ đề…">
                     Cài đặt phụ đề…
+                  </button>
+                  <button id="zoom-settings-open" type="button" data-i18n="Cài đặt phóng to video…">
+                    Cài đặt phóng to video…
                   </button>
                   <label
                     ><span data-i18n="Lệch phụ đề (giây)">Lệch phụ đề (giây)</span
@@ -495,6 +519,34 @@
         </footer>
       </div>
     </main>
+    <dialog id="zoom-settings-dialog" class="zoom-dialog" aria-labelledby="zoom-settings-title">
+      <h2 id="zoom-settings-title" data-i18n="Phóng to video">Phóng to video</h2>
+      <label class="zoom-option">
+        <span
+          ><b data-i18n="Touchpad">Touchpad</b
+          ><small
+            data-i18n="Chụm/mở hai ngón để thu/phóng; rê hai ngón hoặc kéo chuột để di chuyển."
+            >Chụm/mở hai ngón để thu/phóng; rê hai ngón hoặc kéo chuột để di chuyển.</small
+          ></span
+        >
+        <input id="zoom-touchpad" type="checkbox" role="switch" checked />
+      </label>
+      <label class="zoom-option">
+        <span
+          ><b data-i18n="Chuột và bàn phím">Chuột và bàn phím</b
+          ><small
+            data-i18n="Ctrl + cuộn lên/xuống để phóng/thu; Ctrl + kéo chuột trái để di chuyển."
+            >Ctrl + cuộn lên/xuống để phóng/thu; Ctrl + kéo chuột trái để di chuyển.</small
+          ></span
+        >
+        <input id="zoom-mouse" type="checkbox" role="switch" checked />
+      </label>
+      <div class="caption-dialog-actions">
+        <button id="zoom-settings-close" type="button" class="primary" data-i18n="Đóng">
+          Đóng
+        </button>
+      </div>
+    </dialog>
     <dialog id="caption-settings-dialog" class="caption-dialog">
       <h2 data-i18n="Cài đặt phụ đề">Cài đặt phụ đề</h2>
       <p
