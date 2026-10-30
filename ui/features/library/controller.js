@@ -11,6 +11,8 @@ import { invoke, asset, chooseDirectory, chooseSubtitle } from '../../shared/api
 import { PreferenceStore, workspaceDefaults } from '../../shared/preferences.js';
 import { installCloseGuard } from '../../shared/window-lifecycle.js';
 import { Player } from '../player/player.js';
+import { LessonSearch } from './lesson-search.js';
+import { syncChapterNavigation } from './navigation.js';
 import { revealActiveLesson } from './playlist-scroll.js';
 import { matchesLessonMode, syncLibraryNavigation } from './navigation.js';
 
@@ -103,6 +105,11 @@ async function loadPreferences() {
 }
 
 const playlistButtons = new Map();
+new LessonSearch({
+  getLessons: () => state.all,
+  getLanguage: () => state.language,
+  onSelect: (lesson) => watch(lesson, false),
+});
 const player = new Player({
   notify,
   getNextTitle: () => {
@@ -117,6 +124,7 @@ const player = new Player({
     if (result >= 0) state.results[result] = lesson;
     if (!$('library-view').hidden) updateStats();
     else syncLibraryNavigation(state.mode, state.all);
+    syncChapterNavigation($('chapter-filter').value);
     $('playlist-count').textContent = t('{count} bài · {completed} hoàn thành', {
       count: state.all.length,
       completed: state.all.filter((l) => l.completed).length,
@@ -142,6 +150,7 @@ function updateStats() {
   const completed = state.all.filter((l) => l.completed).length;
   const percent = count ? Math.round((completed / count) * 100) : 0;
   syncLibraryNavigation(state.mode, state.all);
+  syncChapterNavigation($('chapter-filter').value);
   $('stat-lessons').textContent = count;
   $('stat-completed').textContent = completed;
   $('stat-progress').textContent = percent + '%';
@@ -219,6 +228,7 @@ async function search() {
 }
 function render() {
   syncLibraryNavigation(state.mode, state.all);
+  syncChapterNavigation($('chapter-filter').value);
   const chapter = $('chapter-filter').value;
   const lessons = state.results.filter(
     (l) => (!chapter || l.chapter === chapter) && matchesLessonMode(l, state.mode),
@@ -359,7 +369,7 @@ async function chooseLibrary() {
     notify(e);
   }
 }
-$('choose-library').onclick = chooseLibrary;
+$('choose-library').onclick = $('library-location').onclick = chooseLibrary;
 $('rescan').onclick = async () => {
   player.endScreen.hide();
   try {
@@ -374,6 +384,7 @@ $('rescan').onclick = async () => {
 };
 $('back').onclick = home;
 $('home').onclick = () => {
+  $('chapter-filter').value = '';
   state.mode = 'all';
   home();
 };
@@ -425,6 +436,7 @@ $('display-language').onchange = () => {
   playlist();
 };
 document.addEventListener('keydown', (e) => {
+  if (document.querySelector('dialog[open]')) return;
   if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
     e.preventDefault();
     home();
@@ -555,7 +567,7 @@ onLocaleChange(() => {
   render();
   playlist();
   updateWatchText();
-  if (!state.root) $('hero-meta').textContent = t('Chọn thư mục files qua nút ⚙ ở góc trái.');
+  if (!state.root) $('hero-meta').textContent = t('Chọn thư mục files qua nút ⚙ ở góc phải.');
   if ($('notes-status').textContent)
     $('notes-status').textContent = t(state.notesDirty ? 'Chưa lưu' : 'Đã lưu trên máy.');
 });
@@ -567,7 +579,7 @@ try {
   await loadPreferences();
   await refresh(true);
 } catch (e) {
-  $('hero-meta').textContent = t('Chọn thư mục files qua nút ⚙ ở góc trái.');
+  $('hero-meta').textContent = t('Chọn thư mục files qua nút ⚙ ở góc phải.');
   $('empty').hidden = false;
   notify(e);
 }

@@ -741,3 +741,40 @@ dialog {
   overflow-y: auto;
   overscroll-behavior: contain;
 }
+
+.playlist-title,
+.lesson-search-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.playlist-title .icon-button {
+  display: grid;
+  place-items: center;
+  padding: 4px;
+}
+.transcript-sync {
+  text-align: center;
+}
+#transcript {
+  overscroll-behavior: contain;
+}
+#lesson-search-dialog {
+  width: min(640px, calc(100vw - 32px));
+}
+.lesson-search-heading h2 {
+  margin: 0;
+}
+#lesson-search-input {
+  width: 100%;
+  margin: 16px 0;
+}
+#lesson-search-results {
+  max-height: min(55vh, 480px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+#lesson-search-results .playlist-item {
+  text-align: left;
+}

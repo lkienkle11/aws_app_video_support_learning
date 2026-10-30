@@ -107,3 +107,19 @@ visibility changed during sampling. The local final report is
 `docs/reports/zoom-cpu-crossover-final.json`; its valid pair measured 23.70% before
 and 19.65% after. This rendering benchmark does not establish whole-app CPU below
 8%; that target remains unmet.
+
+
+## Course navigation, transcript following and lesson search
+
+Run `library-transcript-webkit.mjs` with the same Swift harness and an MP4 longer
+than 145 seconds. It loads the production library controller, Player, DOM and CSS,
+with a small in-memory backend fixture and real media playback. Checks chapter
+selection after restore/click/dropdown, both folder chooser entry points, transcript
+auto-follow on seek and playback, manual scroll suspension and Sync now, title-only
+multilingual search, result navigation/modal closure and resetting follow on lesson
+change. It does not modify the course SQLite database.
+
+```sh
+swift -module-cache-path tools/swift-cache tests/native/captions-webkit.swift \
+  "$PWD" "/absolute/path/to/course.mp4" tests/native/library-transcript-webkit.mjs
+```

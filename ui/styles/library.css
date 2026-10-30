@@ -182,8 +182,12 @@ textarea:focus {
   border-radius: 50%;
   margin-right: 5px;
 }
-.sidebar-bottom button {
-  float: right;
+.sidebar-bottom {
+  text-align: left;
+  cursor: pointer;
+}
+.sidebar-bottom:hover {
+  background: #f2f7f3;
 }
 .sidebar-bottom small {
   display: block;

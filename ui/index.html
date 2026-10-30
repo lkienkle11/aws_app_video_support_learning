@@ -37,19 +37,18 @@
         NỘI DUNG KHÓA HỌC
       </div>
       <nav id="chapters" aria-label="Chương khóa học" data-i18n-aria-label="Chương khóa học"></nav>
-      <div class="sidebar-bottom">
+      <button
+        class="sidebar-bottom"
+        id="library-location"
+        title="Chọn thư mục files"
+        data-i18n-title="Chọn thư mục files"
+      >
         <span class="status-dot"></span
-        ><span data-i18n="Dữ liệu trên máy của bạn">Dữ liệu trên máy của bạn</span
-        ><button
-          id="choose-library"
-          title="Chọn thư mục files"
-          data-i18n-title="Chọn thư mục files"
-        >
-          ⚙</button
-        ><small id="library-path" data-i18n="Chọn thư mục files để bắt đầu"
+        ><span data-i18n="Dữ liệu trên máy của bạn">Dữ liệu trên máy của bạn</span>
+        <small id="library-path" data-i18n="Chọn thư mục files để bắt đầu"
           >Chọn thư mục files để bắt đầu</small
         >
-      </div>
+      </button>
     </aside>
     <main>
       <header class="topbar">
@@ -75,6 +74,15 @@
             data-i18n-title="Quét lại thư viện"
           >
             ↻</button
+          ><button
+            id="choose-library"
+            class="icon-button"
+            title="Chọn thư mục files"
+            data-i18n-title="Chọn thư mục files"
+            aria-label="Chọn thư mục files"
+            data-i18n-aria-label="Chọn thư mục files"
+          >
+            ⚙</button
           ><span class="avatar">K</span>
         </div>
       </header>
@@ -486,6 +494,11 @@
                   data-i18n-aria-label="Tìm trong phụ đề"
                 />
                 <div id="transcript"></div>
+                <div class="transcript-sync">
+                  <button id="transcript-sync" class="secondary" data-i18n="Đồng bộ hóa" hidden>
+                    Đồng bộ hóa
+                  </button>
+                </div>
               </div>
               <div id="notes-tab" class="tab-content" hidden>
                 <label
@@ -504,8 +517,31 @@
             </div>
             <aside class="playlist">
               <div class="playlist-heading">
-                <b data-i18n="Nội dung khóa học">Nội dung khóa học</b
-                ><small id="playlist-count"></small>
+                <div class="playlist-title">
+                  <b data-i18n="Nội dung khóa học">Nội dung khóa học</b
+                  ><button
+                    id="lesson-search-open"
+                    class="icon-button"
+                    aria-label="Tìm bài học"
+                    data-i18n-aria-label="Tìm bài học"
+                    title="Tìm bài học"
+                    data-i18n-title="Tìm bài học"
+                  >
+                    <svg
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      aria-hidden="true"
+                    >
+                      <circle cx="10.5" cy="10.5" r="6.5" />
+                      <path d="m16 16 5 5" />
+                    </svg>
+                  </button>
+                </div>
+                <small id="playlist-count"></small>
               </div>
               <div id="playlist"></div>
             </aside>
@@ -661,6 +697,28 @@
       </form>
     </dialog>
     <div id="toast" role="status" hidden></div>
+    <dialog id="lesson-search-dialog" aria-labelledby="lesson-search-title">
+      <div class="lesson-search-heading">
+        <h2 id="lesson-search-title" data-i18n="Tìm bài học">Tìm bài học</h2>
+        <button
+          id="lesson-search-close"
+          class="icon-button"
+          aria-label="Đóng"
+          data-i18n-aria-label="Đóng"
+        >
+          ×
+        </button>
+      </div>
+      <input
+        id="lesson-search-input"
+        type="search"
+        placeholder="Tìm theo tiêu đề…"
+        data-i18n-placeholder="Tìm theo tiêu đề…"
+        aria-label="Tìm theo tiêu đề…"
+        data-i18n-aria-label="Tìm theo tiêu đề…"
+      />
+      <div id="lesson-search-results"></div>
+    </dialog>
     <script type="module" src="features/library/controller.js"></script>
   </body>
 </html>

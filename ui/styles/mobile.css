@@ -37,16 +37,12 @@
     margin-left: auto;
     padding: 0;
     border: 0;
-    font-size: 0;
+    font-size: 11px;
+    padding: 8px;
     flex-shrink: 0;
   }
   .sidebar-bottom .status-dot {
     display: none;
-  }
-  .sidebar-bottom button {
-    font-size: 20px;
-    float: none;
-    padding: 10px;
   }
   main {
     margin-left: 0;

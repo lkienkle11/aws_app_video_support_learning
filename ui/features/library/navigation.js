@@ -26,3 +26,12 @@ export function syncLibraryNavigation(mode, lessons, document = globalThis.docum
     if (counter.textContent !== label) counter.textContent = label;
   }
 }
+
+export function syncChapterNavigation(chapter, document = globalThis.document) {
+  for (const button of document.querySelectorAll('[data-chapter]')) {
+    const active = Boolean(chapter) && button.dataset.chapter === chapter;
+    button.classList.toggle('active', active);
+    if (active) button.setAttribute('aria-current', 'true');
+    else button.removeAttribute('aria-current');
+  }
+}

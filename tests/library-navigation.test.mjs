@@ -1,6 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { matchesLessonMode, syncLibraryNavigation } from '../ui/features/library/navigation.js';
+import {
+  matchesLessonMode,
+  syncLibraryNavigation,
+  syncChapterNavigation,
+} from '../ui/features/library/navigation.js';
 
 test('sidebar follows all/progress/completed including a restored mode and live completion changes', () => {
   const nodes = new Map();
@@ -65,4 +69,33 @@ test('sidebar follows all/progress/completed including a restored mode and live 
   syncLibraryNavigation('all', [], document);
   for (const id of ['nav-count', 'nav-progress-count', 'nav-completed-count'])
     assert.equal(nodes.get(id).textContent, '0');
+});
+
+test('chapter selection follows restored, changed and cleared filters', () => {
+  const buttons = ['IAM', 'EC2'].map((chapter) => ({
+    dataset: { chapter },
+    classList: {
+      toggle(_key, value) {
+        this.active = value;
+      },
+    },
+    setAttribute() {
+      this.current = true;
+    },
+    removeAttribute() {
+      this.current = false;
+    },
+  }));
+  const document = { querySelectorAll: () => buttons };
+  for (const chapter of ['EC2', 'IAM', '']) {
+    syncChapterNavigation(chapter, document);
+    assert.deepEqual(
+      buttons.filter((b) => b.classList.active).map((b) => b.dataset.chapter),
+      chapter ? [chapter] : [],
+    );
+    assert.deepEqual(
+      buttons.filter((b) => b.current).map((b) => b.dataset.chapter),
+      chapter ? [chapter] : [],
+    );
+  }
 });

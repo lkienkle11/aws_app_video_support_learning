@@ -1,3 +1,4 @@
+import { TranscriptFollow } from './transcript-follow.js';
 import { t, localizeError, onLocaleChange } from '../../shared/i18n.js';
 import { $, time, spritePosition, escapeHTML } from '../../shared/utils.js';
 import { invoke, asset } from '../../shared/api.js';
@@ -12,6 +13,8 @@ import { VideoZoom } from './video-zoom.js';
 export class Player {
   constructor({ notify, onProgress, onNavigate, getNextTitle = () => null }) {
     this.video = $('video');
+    this.transcriptFollow = new TranscriptFollow($('transcript'), $('transcript-sync'));
+    this.transcriptRows = [];
     this.audio = new AudioOutput(this.video);
     this.notify = notify;
     const onError = (error) =>
@@ -86,6 +89,7 @@ export class Player {
     };
     v.ontimeupdate = () => {
       this.update(false);
+      this.highlightCue();
       if (Date.now() - this.lastSave > 5000) this.save().catch(() => {});
     };
     v.onended = async () => {
@@ -342,6 +346,8 @@ export class Player {
     $('preview-frame').style.backgroundImage = '';
     this.captions.render(null);
     $('transcript').replaceChildren();
+    this.transcriptRows = [];
+    this.transcriptFollow?.reset();
     this.activeCueElement = null;
     await this.audio.suspend();
   }
@@ -446,6 +452,8 @@ export class Player {
             lesson.tracks.findIndex((track) => track.language === preferred),
           );
     $('transcript').replaceChildren();
+    this.transcriptRows = [];
+    this.transcriptFollow?.reset();
     let source;
     try {
       source = await asset(lesson.video);
@@ -522,32 +530,37 @@ export class Player {
       .filter((c) => !query || c.text.toLocaleLowerCase().includes(query))
       .map(
         (c) =>
-          `<button class="cue" data-start="${c.startTime}"><time>${time(c.startTime)}</time><span>${escapeHTML(c.text.replace(/<[^>]*>/g, ''))}</span></button>`,
+          `<button class="cue" data-start="${c.startTime}" data-end="${c.endTime}"><time>${time(c.startTime)}</time><span>${escapeHTML(c.text.replace(/<[^>]*>/g, ''))}</span></button>`,
       )
       .join('');
     if (!cues.length) $('transcript').textContent = t('Chưa có phụ đề cho bài học này.');
-    $('transcript')
-      .querySelectorAll('.cue')
-      .forEach(
-        (button) =>
-          (button.onclick = () => {
-            this.video.currentTime = Number(button.dataset.start);
-          }),
-      );
+    this.transcriptFollow.reset();
+    this.transcriptRows = [...$('transcript').querySelectorAll('.cue')];
+    this.transcriptRows.forEach(
+      (button) =>
+        (button.onclick = () => {
+          this.video.currentTime = Number(button.dataset.start);
+          this.transcriptFollow.following = true;
+          this.highlightCue();
+        }),
+    );
+    this.highlightCue();
   }
   highlightCue() {
     this.captions.render(
       this.selectedTrack >= 0 ? this.video.textTracks[this.selectedTrack] : null,
     );
     if ($('transcript-tab').hidden) return;
-    const active = this.video.textTracks[this.selectedTrack]?.activeCues?.[0];
-    const next = active
-      ? $('transcript').querySelector(`[data-start="${active.startTime}"]`)
-      : null;
+    const current = this.video.currentTime;
+    const next =
+      this.transcriptRows.findLast(
+        (row) => Number(row.dataset.start) <= current && current < Number(row.dataset.end),
+      ) || null;
     if (next === this.activeCueElement) return;
     this.activeCueElement?.classList.remove('active');
     next?.classList.add('active');
     this.activeCueElement = next;
+    this.transcriptFollow.setActive(next);
   }
   update(force = true) {
     if (!force && (document.hidden || !this.captions.controlsVisible)) return;

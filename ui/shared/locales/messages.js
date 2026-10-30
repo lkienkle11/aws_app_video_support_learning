@@ -1,4 +1,7 @@
 export const messages = {
+  'Đồng bộ hóa': { vi: 'Đồng bộ hóa', en: 'Sync now' },
+  'Tìm theo tiêu đề…': { vi: 'Tìm theo tiêu đề…', en: 'Search titles…' },
+  'Không tìm thấy bài học.': { vi: 'Không tìm thấy bài học.', en: 'No lessons found.' },
   'Cài đặt phóng to video…': { vi: 'Cài đặt phóng to video…', en: 'Video zoom settings\u2026' },
   'Phóng to video': { vi: 'Phóng to video', en: 'Video zoom' },
   Touchpad: { vi: 'Touchpad', en: 'Touchpad' },
@@ -537,9 +540,9 @@ export const messages = {
     vi: 'Đã thêm phụ đề. Chọn ngôn ngữ trong cài đặt trình phát.',
     en: 'Subtitles added. Choose a language in player settings.',
   },
-  'Chọn thư mục files qua nút ⚙ ở góc trái.': {
-    vi: 'Chọn thư mục files qua nút ⚙ ở góc trái.',
-    en: 'Choose your files folder using ⚙ in the sidebar.',
+  'Chọn thư mục files qua nút ⚙ ở góc phải.': {
+    vi: 'Chọn thư mục files qua nút ⚙ ở góc phải.',
+    en: 'Choose your files folder using ⚙ in the top-right corner.',
   },
   'Bạn đã đến cuối danh sách bài học.': {
     vi: 'Bạn đã đến cuối danh sách bài học.',
